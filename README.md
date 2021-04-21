@@ -14,3 +14,9 @@ Retrieve user playlists, iterate through them, save playlist metadata + each son
 Either use JSON or maybe SQLite?
 Make it possible to automatically sync to some more reliable storage (GDrive?)?
 Do incremental diff's instead off full copies?
+
+Make it "self contained" with one time setup required (token refresh/expiration?).
+In a sense that it starts then waits for user to visit the site and complete oauth flow. Once that
+is done the user "owns" the application and any other subsequent authentications do not impact for
+whom the backup is being done. To stop the backuping either destroy the storage that is being used for
+tracking backup work (SQLITE DB?) or maybe add a button for the owner to disconnect/stop.
