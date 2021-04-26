@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zmb3/spotify"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -17,10 +18,10 @@ var (
 )
 
 func main() {
-	_ = godotenv.Load();
-	_ = godotenv.Load(".env.local");
+	_ = godotenv.Load()
+	_ = godotenv.Load(".env.local")
 
-	auth.SetAuthInfo(os.Getenv("SPOTIFY_ID"), os.Getenv("SPOTIFY_SECRET"));
+	auth.SetAuthInfo(os.Getenv("SPOTIFY_ID"), os.Getenv("SPOTIFY_SECRET"))
 	var client *spotify.Client
 
 	http.HandleFunc("/callback", redirectHandler)
@@ -42,17 +43,17 @@ func main() {
 		}
 		fmt.Println("You are logged in as:", user.ID)
 
-		playlists, err := client.CurrentUsersPlaylists();
+		playlists, err := client.CurrentUsersPlaylists()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		fmt.Printf("Found %d playlists\n", playlists.Total)
 		for i := 0; i < len(playlists.Playlists); i++ {
-			p := playlists.Playlists[i];
+			p := playlists.Playlists[i]
 			fmt.Printf("P: [%s] %s\n", p.ID, p.Name)
 		}
-		fmt.Printf("Has next? %s\n", playlists.Next);
+		fmt.Printf("Has next? %s\n", playlists.Next)
 	}()
 
 	http.ListenAndServe(":3333", nil)
@@ -64,6 +65,11 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
 		log.Fatal(err)
 	}
+
+	oldClient := auth.NewClient(&oauth2.Token{RefreshToken: "AQD5ADJ6oteEy2OK4fyKl8Rx69TIZG488fM_kuFsr0A2ZxT9UGaUu6GKgGVHtlVOBUX-m4MGr3Sjd2r2_HcEuFdIVSKejpfo_pNMV_sMyaUAJzzmq4YdfCyAh8KH7vsDJZg"})
+	newToken, err := oldClient.Token()
+	fmt.Printf("%+v\n", newToken)
+	fmt.Printf("%+v\n", err)
 	if st := r.FormValue("state"); st != state {
 		http.NotFound(w, r)
 		log.Fatalf("State mismatch: %s != %s\n", st, state)
