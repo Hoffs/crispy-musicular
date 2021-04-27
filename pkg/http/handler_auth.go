@@ -3,10 +3,13 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	"github.com/hoffs/crispy-musicular/pkg/rand"
 )
+
+const authCookieName = "CrispyAuth"
 
 func (h *httpHandler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: Add some logging
@@ -50,9 +53,16 @@ func (h *httpHandler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO: Somehow authorize requester as the current configured user (set special token as cookie/session?)
-	// so that he could de-auth or see whatever
+	authT, err := rand.String(24)
+	if err != nil {
+		http.Error(w, "Failed to generate auth key", http.StatusInternalServerError)
+		return
+	}
+
+	h.authToken = authT
+
 	w.Header().Set("Content-Type", "text/html")
+	http.SetCookie(w, createAuthCookie(h.authToken, time.Now().AddDate(1, 0, 0)))
 	fmt.Fprintf(w, "Login Completed! Hi %s", usr.ID)
 }
 
@@ -68,4 +78,43 @@ func (h *httpHandler) authHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, h.spotAuth.AuthURL(h.spotifyState), http.StatusFound)
 	return
+}
+
+func (h *httpHandler) deauthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	http.SetCookie(w, createAuthCookie(h.authToken, time.Now().AddDate(0, 0, -1)))
+	fmt.Fprintf(w, "Logged out!")
+}
+
+func (h *httpHandler) authTestHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	st, err := h.auth.GetState()
+	if err != nil {
+		http.Error(w, "No state found", http.StatusInternalServerError)
+	}
+
+	fmt.Fprintf(w, "Authenticated! Hello %s", st.User)
+}
+
+func (h *httpHandler) authGuard(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie(authCookieName)
+		if err != nil || c.Value != h.authToken {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// TODO: Log
+		handler(w, r)
+	}
+}
+
+func createAuthCookie(v string, exp time.Time) *http.Cookie {
+	return &http.Cookie{
+		Name:     authCookieName,
+		Value:    v,
+		SameSite: http.SameSiteStrictMode,
+		HttpOnly: true,
+		Expires:  exp,
+	}
 }

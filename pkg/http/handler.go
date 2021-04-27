@@ -18,6 +18,8 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service) error {
 	// Can will the handler access it's state of httpHandler?
 	http.HandleFunc("/callback", h.callbackHandler)
 	http.HandleFunc("/auth", h.authHandler)
+	http.HandleFunc("/deauth", h.deauthHandler)
+	http.HandleFunc("/auth_test", h.authGuard(h.authTestHandler))
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil)
 }
