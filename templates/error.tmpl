@@ -1,0 +1,19 @@
+{{define "entrypoint"}}
+  {{template "main-layout" .}}
+{{end}}
+
+{{define "body"}}
+<style>
+.error {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+</style>
+
+<div class="error">
+  <h1>{{ .Title }}</h1>
+  <p>{{ .Text }}</p>
+</div>
+{{end}}

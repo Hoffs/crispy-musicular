@@ -1,0 +1,22 @@
+{{define "entrypoint"}}
+  {{template "main-layout" .}}
+{{end}}
+
+{{define "body"}}
+<style>
+.auth-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+</style>
+<script>
+window.onload = () => setTimeout(() => window.location = "/home", 3000)
+</script>
+
+<div class="auth-card">
+  <h1>Authorized as {{ .User }}</h1>
+  <p>Redirecting...</p>
+</div>
+{{end}}

@@ -1,0 +1,53 @@
+{{define "entrypoint"}}
+  {{template "main-layout" .}}
+{{end}}
+
+{{define "body"}}
+<style>
+.content {
+  padding-top: 24px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr min(60ch, calc(100% - 64px)) 1fr;
+  grid-column-gap: 32px;
+}
+
+.content > * {
+  grid-column: 2;
+}
+
+.content__header {
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 4px solid #1ED760;
+}
+</style>
+
+<div class="content">
+  <h2 class="content__header">spotify_backups / {{ .User }}</h1>
+
+  <div class="stat">
+    TODO: Last backup
+  </div>
+
+  <div class="stat">
+    TODO: Next backup
+  </div>
+
+  <div class="stat">
+    TODO: Total backups
+  </div>
+
+  <div class="stat">
+    TODO: Last backup playlist/song count
+  </div>
+
+  <div class="action">
+    TODO: Trigger backup
+  </div>
+
+  <div class="action">
+    TODO: Deauth
+  </div>
+</div>
+{{end}}
