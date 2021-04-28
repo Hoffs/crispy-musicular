@@ -27,9 +27,13 @@ type service struct {
 	r Repository
 }
 
-func NewService(r Repository) Service {
-	// TODO: Check for r = nil
-	return &service{r}
+func NewService(r Repository) (s Service, err error) {
+	if r == nil {
+		err = errors.New("auth: repository is nil")
+		return
+	}
+
+	return &service{r}, nil
 }
 
 func (s *service) GetState() (State, error) {

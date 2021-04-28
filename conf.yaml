@@ -1,3 +1,5 @@
 runIntervalSeconds: 360
 port: 3333
 spotifyCallback: http://localhost:3333/callback
+workerCount: 4
+workerTimeoutSeconds: 600

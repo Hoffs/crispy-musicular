@@ -6,15 +6,17 @@ import (
 	"os"
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
+	"github.com/hoffs/crispy-musicular/pkg/backup"
 	"github.com/hoffs/crispy-musicular/pkg/config"
 	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify"
 )
 
-func RegisterHandlers(c *config.AppConfig, auth auth.Service) error {
+func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Backuper) error {
 	h := &httpHandler{
 		auth:     auth,
 		spotAuth: spotify.NewAuthenticator(c.SpotifyCallback, spotify.ScopePlaylistReadPrivate),
+		backuper: b,
 		t:        NewTemplater("templates", os.Getenv("DEBUG") == ""),
 	}
 
@@ -33,6 +35,7 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service) error {
 type httpHandler struct {
 	auth         auth.Service
 	spotAuth     spotify.Authenticator
+	backuper     backup.Backuper
 	t            *templater
 	spotifyState string
 	authToken    string

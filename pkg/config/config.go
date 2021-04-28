@@ -11,11 +11,13 @@ import (
 )
 
 type AppConfig struct {
-	RunIntervalSeconds uint64 `yaml:"runIntervalSeconds"`
-	Port               uint32 `yaml:"port"`
-	SpotifyCallback    string `yaml:"spotifyCallback"`
-	SpotifyId          string
-	SpotifySecret      string
+	RunIntervalSeconds   uint64 `yaml:"runIntervalSeconds"`
+	Port                 uint32 `yaml:"port"`
+	SpotifyCallback      string `yaml:"spotifyCallback"`
+	WorkerCount          uint8  `yaml:"workerCount"`
+	WorkerTimeoutSeconds uint32 `yaml:"workerTimeoutSeconds"`
+	SpotifyId            string
+	SpotifySecret        string
 }
 
 func (c *AppConfig) validate() error {
@@ -25,6 +27,14 @@ func (c *AppConfig) validate() error {
 
 	if c.Port == 0 {
 		return errors.New(fmt.Sprint("appconfig: Port must be configured"))
+	}
+
+	if c.WorkerCount == 0 {
+		return errors.New(fmt.Sprint("appconfig: WorkerCount must be configured and more than 0"))
+	}
+
+	if c.WorkerTimeoutSeconds < 300 {
+		return errors.New(fmt.Sprint("appconfig: WorkerTimeoutSeconds must be configured and more than 300"))
 	}
 
 	if c.SpotifyId == "" {

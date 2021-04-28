@@ -1,8 +1,13 @@
 package http
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func (h *httpHandler) backupStartHandler(w http.ResponseWriter, r *http.Request) {
+	go h.backuper.CreateBackup()
 
-	http.Error(w, "Not implmented", 500)
+	w.WriteHeader(http.StatusAccepted)
+	fmt.Fprint(w, "Backup started")
 }
