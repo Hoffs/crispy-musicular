@@ -18,12 +18,14 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service) error {
 		t:        NewTemplater("templates", os.Getenv("DEBUG") == ""),
 	}
 
-	// Can will the handler access it's state of httpHandler?
-	http.HandleFunc("/home", h.authGuard(h.homeHandler))
-	http.HandleFunc("/callback", h.callbackHandler)
-	http.HandleFunc("/auth", h.authHandler)
-	http.HandleFunc("/deauth", h.deauthHandler)
-	http.HandleFunc("/auth_test", debugGuard(h.authGuard(h.authTestHandler)))
+	http.HandleFunc("/auth", methodGuard(http.MethodGet, h.authHandler))
+	http.HandleFunc("/callback", methodGuard(http.MethodGet, h.callbackHandler))
+	http.HandleFunc("/deauth", methodGuard(http.MethodGet, h.deauthHandler))
+
+	http.HandleFunc("/auth_test", methodGuard(http.MethodGet, debugGuard(h.authGuard(h.authTestHandler))))
+
+	http.HandleFunc("/home", methodGuard(http.MethodGet, h.authGuard(h.homeHandler)))
+	http.HandleFunc("/backup/start", methodGuard(http.MethodPost, h.authGuard(h.backupStartHandler)))
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil)
 }
@@ -58,10 +60,23 @@ func (h *httpHandler) renderError(w http.ResponseWriter, title string, err error
 	h.t.renderTemplate(w, "error.tmpl", d)
 }
 
+// Pages that only work in debug env
 func debugGuard(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	// Pages that only work in debug env
 	return func(w http.ResponseWriter, r *http.Request) {
 		if os.Getenv("DEBUG") == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		handler(w, r)
+	}
+}
+
+// Doens't really work well if same route should handle GET/POST
+func methodGuard(method string, handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method {
+			log.Debug().Msgf("http: received request at path %s with method %s, expected: %s", r.URL.Path, r.Method, method)
 			http.NotFound(w, r)
 			return
 		}

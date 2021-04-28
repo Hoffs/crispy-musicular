@@ -2,7 +2,7 @@
   {{template "main-layout" .}}
 {{end}}
 
-{{define "body"}}
+{{define "body-style"}}
 <style>
 .content {
   padding-top: 24px;
@@ -20,11 +20,62 @@
   text-align: center;
   padding-bottom: 16px;
   border-bottom: 4px solid #1ED760;
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 16px;
+}
+
+.action-trigger {
+  text-decoration: none;
+  background: none;
+  font-size: 1.2em;
+  border: 2px solid #B2B2B2;
+  color: #B2B2B2;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: 0.1s;
+}
+
+.action-trigger:hover {
+  border-color: #FFF;
+  color: #FFF;
+  cursor: pointer;
 }
 </style>
+{{end}}
 
+{{define "body-script"}}
+  <script>
+
+    const backupButton = document.getElementById("backup");
+    backupButton.addEventListener("click", async () => {
+      const result = await fetch("/backup/start", { method: "POST" });
+      const rText = await result.text();
+      console.log(rText)
+    });
+
+    const deauthButton = document.getElementById("deauth");
+    deauthButton.addEventListener("click", async () => {
+      const result = await fetch("/deauth", { redirect: "follow" });
+      if (result.ok) {
+        window.location = "/auth";
+      }
+    });
+  </script>
+{{end}}
+
+{{define "body"}}
 <div class="content">
   <h2 class="content__header">spotify_backups / {{ .User }}</h1>
+
+  <div class="actions">
+    <button class="action-trigger" id="backup">Backup now</button>
+    <button class="action-trigger" id="deauth">Logout</a>
+  </div>
 
   <div class="stat">
     TODO: Last backup
@@ -40,14 +91,6 @@
 
   <div class="stat">
     TODO: Last backup playlist/song count
-  </div>
-
-  <div class="action">
-    TODO: Trigger backup
-  </div>
-
-  <div class="action">
-    TODO: Deauth
   </div>
 </div>
 {{end}}

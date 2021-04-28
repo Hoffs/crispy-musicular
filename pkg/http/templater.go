@@ -44,8 +44,6 @@ func (t *templater) renderTemplate(w http.ResponseWriter, template string, data 
 		return
 	}
 
-	log.Debug().Msg(tmpl.DefinedTemplates())
-
 	w.Header().Set("Content-Type", "text/html")
 	err = tmpl.ExecuteTemplate(w, "entrypoint", data)
 	if err != nil {

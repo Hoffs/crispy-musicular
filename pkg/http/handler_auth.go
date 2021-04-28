@@ -65,6 +65,7 @@ func (h *httpHandler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpHandler) authHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: Instead of redirect use spotify styled button
 	s, err := rand.String(16)
 	if err != nil {
 		h.renderError(w, "Failed to generate random state", err)
@@ -74,15 +75,19 @@ func (h *httpHandler) authHandler(w http.ResponseWriter, r *http.Request) {
 	// Have just a single state, because no reason to handle concurrent requests (technically this could just be static).
 	h.spotifyState = s
 
-	log.Debug().Msgf("Redirecting to auth with spotify with state '%s'", h.spotifyState)
-	http.Redirect(w, r, h.spotAuth.AuthURL(h.spotifyState), http.StatusFound)
+	d := &struct {
+		AuthUrl string
+	}{
+		h.spotAuth.AuthURL(h.spotifyState),
+	}
+
+	h.t.renderTemplate(w, "auth.tmpl", d)
 	return
 }
 
 func (h *httpHandler) deauthHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Add template
 	http.SetCookie(w, createAuthCookie(h.authToken, time.Now().AddDate(0, 0, -1)))
-	fmt.Fprintf(w, "Logged out!")
+	http.Redirect(w, r, "/auth", http.StatusFound)
 }
 
 func (h *httpHandler) authTestHandler(w http.ResponseWriter, r *http.Request) {

@@ -2,19 +2,27 @@
   {{template "main-layout" .}}
 {{end}}
 
-{{define "body"}}
+{{define "body-style"}}
 <style>
 .auth-card {
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
 }
 </style>
-<script>
-window.onload = () => setTimeout(() => window.location = "/home", 3000)
-</script>
+{{end}}
 
+{{define "body-script"}}
+<script>
+window.onload = () => setTimeout(() => window.location = "/home", 1250)
+</script>
+{{end}}
+
+{{define "body"}}
 <div class="auth-card">
   <h1>Authorized as {{ .User }}</h1>
   <p>Redirecting...</p>
