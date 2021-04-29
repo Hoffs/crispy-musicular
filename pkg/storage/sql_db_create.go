@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS auth_state (
 
 CREATE TABLE IF NOT EXISTS backups (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id TEXT NOT NULL,
 	started TIMESTAMP NOT NULL,
 	finished TIMESTAMP
 );
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS tracks (
 	spotify_id TEXT NOT NULL,
 	name TEXT NOT NULL,
 	artist TEXT NOT NULL,
+	album TEXT NOT NULL,
 	added_at_to_playlist TEXT,
 	created TIMESTAMP NOT NULL,
 

@@ -16,8 +16,9 @@ type Repository interface {
 	// TODO: Add querying
 }
 
-func (b *backuper) createBackup() (bp *Backup, err error) {
+func (b *backuper) createBackup(userId string) (bp *Backup, err error) {
 	bp = &Backup{
+		UserId:  userId,
 		Started: time.Now(),
 	}
 
@@ -49,6 +50,7 @@ func (b *backuper) addSpotifyTrack(bp *Backup, p *Playlist, st *spotify.Playlist
 		SpotifyId:         string(st.Track.ID),
 		Name:              st.Track.Name,
 		Artist:            formatTrackArtists(st.Track.Artists),
+		Album:             st.Track.Album.Name,
 		AddedAtToPlaylist: st.AddedAt,
 		Created:           time.Now(),
 	}

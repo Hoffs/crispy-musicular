@@ -56,10 +56,8 @@ Initial version should just store backed up information, with maybe some general
 
 - User - Spotify User
 - Backup - Instance of backup linked to user, contains:
-  - Playlist - Spotify Playlist
-  - Song - Spotify Song
-
-Needs backup runner / main loop
+- Playlist - Spotify Playlist
+- Song - Spotify Song
 
 ### Database
 
@@ -73,13 +71,13 @@ Some thoughts:
 - Creating another table for Song that can be related to BackupSong would be possible and technically would save a decent amount of space since there would be no need to constantly save entire song name+artist, just ID's, but that just seems too much effort atm and also would be annoying to deal, as it would require to first insert/check into Song table and then another insert into SongBackup table, also updating Song in case some details change.
 
 ```
-sqlite> SELECT p.name, t.artist, t.name FROM tracks t JOIN playlists p ON p.id = t.playlist_id WHERE t.backup_id = 2;
-groovy soul/funk|Patrice Rushen|Remind Me
-groovy soul/funk|Patrice Rushen|Settle For My Love
-groovy soul/funk|The Jones Girls|When I'm Gone
-groovy soul/funk|The Jones Girls|Who Can I Run To
-groovy soul/funk|Dexter Wansel|The Sweetest Pain
-groovy soul/funk|Keni Burke|Risin' to the Top
-groovy soul/funk|Rene & Angela|I Love You More - Remastered
-groovy soul/funk|Evelyn "Champagne" King|The Show Is Over
+sqlite> SELECT p.name, t.artist, t.name, t.album FROM tracks t JOIN playlists p ON p.id = t.playlist_id WHERE t.backup_id = 1;
+groovy soul/funk|Patrice Rushen|Remind Me|Straight From The Heart
+groovy soul/funk|Patrice Rushen|Settle For My Love|Pizzazz
+groovy soul/funk|The Jones Girls|When I'm Gone|At Peace with Woman
+groovy soul/funk|The Jones Girls|Who Can I Run To|The Jones Girls
+groovy soul/funk|Dexter Wansel|The Sweetest Pain|Time Is Slipping Away
+groovy soul/funk|Keni Burke|Risin' to the Top|Changes (Expanded Edition)
+groovy soul/funk|Rene & Angela|I Love You More - Remastered|Classic Masters
+groovy soul/funk|Evelyn "Champagne" King|The Show Is Over|Smooth Talk (Expanded Edition)
 ```

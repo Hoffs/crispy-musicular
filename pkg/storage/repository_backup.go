@@ -7,7 +7,7 @@ import (
 )
 
 func (r *repository) AddBackup(b *bp.Backup) (err error) {
-	result, err := r.db.Exec("INSERT INTO backups (started) VALUES (?)", b.Started)
+	result, err := r.db.Exec("INSERT INTO backups (user_id, started) VALUES (?, ?)", b.UserId, b.Started)
 	if err != nil {
 		return
 	}
@@ -32,10 +32,11 @@ func (r *repository) AddPlaylist(b *bp.Backup, p *bp.Playlist) (err error) {
 }
 
 func (r *repository) AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) (err error) {
-	_, err = r.db.Exec("INSERT INTO tracks (spotify_id, name, artist, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	_, err = r.db.Exec("INSERT INTO tracks (spotify_id, name, artist, album, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		t.SpotifyId,
 		t.Name,
 		t.Artist,
+		t.Album,
 		t.AddedAtToPlaylist,
 		t.Created,
 		p.Id,
