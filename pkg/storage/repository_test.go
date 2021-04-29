@@ -43,6 +43,9 @@ func TestCreateNewRepository(t *testing.T) {
 
 	expectedTables := map[string]bool{
 		"auth_state": false,
+		"backups":    false,
+		"playlists":  false,
+		"tracks":     false,
 	}
 
 	for rows.Next() {

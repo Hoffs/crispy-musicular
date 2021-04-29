@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
+	bp "github.com/hoffs/crispy-musicular/pkg/backup"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
 )
@@ -15,6 +16,12 @@ type Repository interface {
 	GetState() (auth.State, error)
 	SetState(auth.State) error
 	ClearState() error
+
+	AddBackup(b *bp.Backup) error
+	AddPlaylist(b *bp.Backup, p *bp.Playlist) error
+	AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) error
+
+	UpdateBackup(b *bp.Backup) error
 }
 
 type repository struct {

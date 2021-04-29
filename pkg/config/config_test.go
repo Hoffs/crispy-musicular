@@ -15,6 +15,10 @@ port: 1337
 spotifyCallback: http://localhost:1337
 workerCount: 12
 workerTimeoutSeconds: 500
+savedPlaylistIds:
+- 3YWsEVozX85ZkwO0d2u8Xx
+ignoredPlaylistIds:
+- 12345
 `
 
 func TestLoadConfig(t *testing.T) {

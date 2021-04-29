@@ -12,7 +12,7 @@ import (
 	"github.com/zmb3/spotify"
 )
 
-func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Backuper) error {
+func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Service) error {
 	h := &httpHandler{
 		auth:     auth,
 		spotAuth: spotify.NewAuthenticator(c.SpotifyCallback, spotify.ScopePlaylistReadPrivate),
@@ -35,7 +35,7 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Backuper)
 type httpHandler struct {
 	auth         auth.Service
 	spotAuth     spotify.Authenticator
-	backuper     backup.Backuper
+	backuper     backup.Service
 	t            *templater
 	spotifyState string
 	authToken    string

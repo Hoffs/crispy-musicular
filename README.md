@@ -64,10 +64,22 @@ Needs backup runner / main loop
 ### Database
 
 Tables:
-- Songs, main table with Id (Sequence), SongId (Spotify), Name, Artists, DateAddedToPlaylist (If Available), PlaylistId (Since user can control these), SpotifyUri (For rebuilding playlist), BackupId
+- Songs, main table with Id (Sequence), SongId (Spotify), Name, Artists, DateAddedToPlaylist (If Available), PlaylistId (Since user can control these), SpotifyUri (can be created using spotify id), BackupId
 - Playlists, Id (Sequence), PlaylistId (Spotify), Name, Created (Or Smth)
 - Backups, Id (Sequence), Started, Finished, (Some stats?)
 
 Some thoughts:
 - Songs stores straight up names and artist names as strings, because technically the label can change these so the backup will contain the string of what it was called at that specific time.
 - Creating another table for Song that can be related to BackupSong would be possible and technically would save a decent amount of space since there would be no need to constantly save entire song name+artist, just ID's, but that just seems too much effort atm and also would be annoying to deal, as it would require to first insert/check into Song table and then another insert into SongBackup table, also updating Song in case some details change.
+
+```
+sqlite> SELECT p.name, t.artist, t.name FROM tracks t JOIN playlists p ON p.id = t.playlist_id WHERE t.backup_id = 2;
+groovy soul/funk|Patrice Rushen|Remind Me
+groovy soul/funk|Patrice Rushen|Settle For My Love
+groovy soul/funk|The Jones Girls|When I'm Gone
+groovy soul/funk|The Jones Girls|Who Can I Run To
+groovy soul/funk|Dexter Wansel|The Sweetest Pain
+groovy soul/funk|Keni Burke|Risin' to the Top
+groovy soul/funk|Rene & Angela|I Love You More - Remastered
+groovy soul/funk|Evelyn "Champagne" King|The Show Is Over
+```

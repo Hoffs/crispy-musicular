@@ -6,7 +6,7 @@ import (
 )
 
 func (h *httpHandler) backupStartHandler(w http.ResponseWriter, r *http.Request) {
-	go h.backuper.CreateBackup()
+	go h.backuper.Backup()
 
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprint(w, "Backup started")

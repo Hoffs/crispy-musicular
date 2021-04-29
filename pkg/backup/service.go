@@ -18,13 +18,14 @@ import (
 type backuper struct {
 	config *config.AppConfig
 	auth   auth.Service
+	repo   Repository
 }
 
-type Backuper interface {
-	CreateBackup() (err error)
+type Service interface {
+	Backup() (err error)
 }
 
-func NewBackuper(c *config.AppConfig, s auth.Service) (b Backuper, err error) {
+func NewBackuper(c *config.AppConfig, s auth.Service, r Repository) (b Service, err error) {
 	if c == nil {
 		err = errors.New("backuper: config is nil")
 		return
@@ -38,31 +39,26 @@ func NewBackuper(c *config.AppConfig, s auth.Service) (b Backuper, err error) {
 	b = &backuper{
 		config: c,
 		auth:   s,
+		repo:   r,
 	}
 	return
 }
 
-func (b *backuper) CreateBackup() (err error) {
-	// workgroup
-	// This gets called and does following::
-	// 1. Preps state:
-	// 1.1. Insert a new entry in database and get backup id.
-	// 1.2. Create authenticated Spotify client
-	// 2. Spin up a couple of worker goroutines that use a channel and wait for "playlists" to arrive
-	// 3. Iterate over user playlists and send them to goroutines
-	//
-	//	Inside goroutines:
-	//		Potentially goroutines could also use goroutines for going over big playslists (future feat)
-	//		1. Read playlist info, iterate over playlist songs
-	//		2. Store songs to database
-	//
-	// 4. Stop goroutines with special signal.
+type backupState struct {
+	ctx     context.Context
+	wg      sync.WaitGroup
+	spotify spotify.Client
+	bp      *Backup
+}
 
-	// Does this need local state?
-	// TODO: Add actual saving of data
+func (b *backuper) Backup() (err error) {
+	var state backupState
 
-	// Create context with configured timeout
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(b.config.WorkerTimeoutSeconds)*time.Second)
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(b.config.WorkerTimeoutSeconds)*time.Second)
+
+	state.ctx = ctx
 	defer cancel()
 
 	st, err := b.auth.GetState()
@@ -70,38 +66,41 @@ func (b *backuper) CreateBackup() (err error) {
 		return
 	}
 
-	log.Debug().Msg(st.RefreshToken)
-	t := &oauth2.Token{
-		RefreshToken: st.RefreshToken,
-	}
-
 	// There should be no long term issues with this as refresh token doesn't change on subsequent
 	// authorizations and probably only changes if auth is revoked for the app or something is reset
 	// by Spotify.
-	sp := spotify.NewAuthenticator("", spotify.ScopePlaylistReadPrivate).NewClient(t)
-	usr, err := sp.CurrentUser()
+	sAuth := spotify.NewAuthenticator("", spotify.ScopePlaylistReadPrivate)
+	state.spotify = sAuth.NewClient(&oauth2.Token{RefreshToken: st.RefreshToken})
+	state.spotify.AutoRetry = true // Auto retry on rate limit
+
+	usr, err := state.spotify.CurrentUser()
 	if err != nil {
 		log.Error().Err(err).Msg("backuper: failed to get current user, is refresh token invalid?")
 		return
 	}
 
+	state.bp, err = b.createBackup()
+	if err != nil {
+		log.Error().Err(err).Msg("backuper: could not create backup entry")
+	}
+
 	workers := b.config.WorkerCount
 	log.Info().Msgf("backuper: starting backup for %s with %d workers", usr.ID, workers)
 
-	// Use either 61 (default pagination is 20) or if worker amount is higher, worker count + 1,
+	// Use either 51 or if worker amount is higher, worker count + 1,
 	// so that in best case scenario we prefetch enough data to saturate all workers.
 	// Would maybe make sense to add also an upper bound with math.Min, so that the buffer size would
 	// be too big.
-	bufferSize := int(math.Max(float64(61), float64(workers+1)))
+	bufferSize := int(math.Max(float64(51), float64(workers+1)))
 	pch := make(chan *spotify.SimplePlaylist, bufferSize)
 
-	var wg sync.WaitGroup
 	for i := uint8(0); i < workers; i++ {
-		wg.Add(1)
-		go savePlaylist(ctx, &wg, &sp, pch)
+		state.wg.Add(1)
+		go b.worker(&state, pch)
 	}
 
-	playlists, err := sp.CurrentUsersPlaylists()
+	limit := 50 // Max playlists per page
+	playlists, err := state.spotify.CurrentUsersPlaylistsOpt(&spotify.Options{Limit: &limit})
 	if err != nil {
 		log.Error().Err(err).Msg("backuper: couldn't get initial user playlists")
 		return
@@ -111,15 +110,22 @@ func (b *backuper) CreateBackup() (err error) {
 		log.Debug().Msgf("backuper: got playlist page, offset %d, limit %d, total %d", playlists.Offset, playlists.Limit, playlists.Total)
 
 		for id := range playlists.Playlists {
+			// use from array, since value from range function changes, but not the pointer
 			p := &playlists.Playlists[id]
-			log.Debug().Msgf("backuper: sending %s to worker with pointer %p", p.Name, p)
+
+			if !b.shouldSavePlaylist(string(p.ID)) {
+				log.Debug().Msgf("backuper: skipping '%s' with id '%s'", p.Name, p.ID)
+				continue
+			}
+
+			log.Debug().Msgf("backuper: sending '%s' to worker with pointer %p", p.Name, p)
 
 			// New struct is created, so sending pointer causes no issues even if next page is loaded before
 			// previous page has finished.
 			pch <- p
 		}
 
-		err = sp.NextPage(playlists)
+		err = state.spotify.NextPage(playlists)
 		if err == spotify.ErrNoMorePages {
 			break
 		}
@@ -132,7 +138,7 @@ func (b *backuper) CreateBackup() (err error) {
 	// Close to trigger end of work queue
 	close(pch)
 
-	timedOut := syncplus.WaitContext(ctx, &wg)
+	timedOut := syncplus.WaitContext(ctx, &state.wg)
 	if timedOut {
 		log.Warn().Msg("backuper: workers did not finish in time")
 	}
@@ -141,24 +147,20 @@ func (b *backuper) CreateBackup() (err error) {
 	return
 }
 
-// Processes single playlist and saves information
-func savePlaylist(ctx context.Context, wg *sync.WaitGroup, c *spotify.Client, playlists <-chan *spotify.SimplePlaylist) {
-	defer wg.Done()
-
-	for {
-		select {
-		case p := <-playlists:
-			if p == nil {
-				log.Debug().Msgf("backuper_worker: received nil playlist, exiting")
-				return
-			}
-
-			log.Debug().Msgf("backuper_worker: received playlist %s with pointer %p", p.Name, p)
-		case <-ctx.Done():
-			log.Debug().Msg("backuper_worker: exiting")
-			return
+func (b *backuper) shouldSavePlaylist(id string) (save bool) {
+	if len(b.config.SavedPlaylistIds) > 0 {
+		save = false
+		for _, savedId := range b.config.SavedPlaylistIds {
+			save = save || (savedId == id)
+		}
+	} else {
+		save = true
+		for _, savedId := range b.config.IgnoredPlaylistIds {
+			save = save && (savedId != id)
 		}
 	}
+
+	return
 }
 
 // TODO: Add method to run it on the interval (Ticker)

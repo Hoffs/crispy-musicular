@@ -26,7 +26,7 @@ func (r *mockRepo) ClearState() error {
 
 func TestGetStateEmpty(t *testing.T) {
 	r := mockRepo{}
-	s := NewService(&r)
+	s, err := NewService(&r)
 
 	st, err := s.GetState()
 
@@ -36,9 +36,9 @@ func TestGetStateEmpty(t *testing.T) {
 
 func TestGetStateNonEmpty(t *testing.T) {
 	r := mockRepo{}
-	s := NewService(&r)
+	s, err := NewService(&r)
 
-	err := s.SetState(State{"Refresh", "User"})
+	err = s.SetState(State{"Refresh", "User"})
 	st, err := s.GetState()
 
 	require.NoError(t, err)
@@ -47,9 +47,9 @@ func TestGetStateNonEmpty(t *testing.T) {
 
 func TestSetStateNoValue(t *testing.T) {
 	r := mockRepo{}
-	s := NewService(&r)
+	s, err := NewService(&r)
 
-	err := s.SetState(State{"Refresh", ""})
+	err = s.SetState(State{"Refresh", ""})
 	require.Error(t, err)
 
 	err = s.SetState(State{"", "User"})
@@ -58,17 +58,17 @@ func TestSetStateNoValue(t *testing.T) {
 
 func TestSetStateValue(t *testing.T) {
 	r := mockRepo{}
-	s := NewService(&r)
+	s, err := NewService(&r)
 
-	err := s.SetState(State{"Refresh", "User"})
+	err = s.SetState(State{"Refresh", "User"})
 	require.NoError(t, err)
 }
 
 func TestClearState(t *testing.T) {
 	r := mockRepo{}
-	s := NewService(&r)
+	s, err := NewService(&r)
 
-	err := s.SetState(State{"Refresh", "User"})
+	err = s.SetState(State{"Refresh", "User"})
 	require.NoError(t, err)
 
 	err = s.ClearState()

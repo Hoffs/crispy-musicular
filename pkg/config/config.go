@@ -10,12 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// If saved playlist ids is not empty, "IgnoredPlaylistIds" is not used.
 type AppConfig struct {
-	RunIntervalSeconds   uint64 `yaml:"runIntervalSeconds"`
-	Port                 uint32 `yaml:"port"`
-	SpotifyCallback      string `yaml:"spotifyCallback"`
-	WorkerCount          uint8  `yaml:"workerCount"`
-	WorkerTimeoutSeconds uint32 `yaml:"workerTimeoutSeconds"`
+	RunIntervalSeconds   uint64   `yaml:"runIntervalSeconds"`
+	Port                 uint32   `yaml:"port"`
+	SpotifyCallback      string   `yaml:"spotifyCallback"`
+	WorkerCount          uint8    `yaml:"workerCount"`
+	WorkerTimeoutSeconds uint32   `yaml:"workerTimeoutSeconds"`
+	SavedPlaylistIds     []string `yaml:"savedPlaylistIds"`
+	IgnoredPlaylistIds   []string `yaml:"ignoredPlaylistIds"`
 	SpotifyId            string
 	SpotifySecret        string
 }
