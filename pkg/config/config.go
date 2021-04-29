@@ -12,44 +12,45 @@ import (
 
 // If saved playlist ids is not empty, "IgnoredPlaylistIds" is not used.
 type AppConfig struct {
-	RunIntervalSeconds   uint64   `yaml:"runIntervalSeconds"`
-	Port                 uint32   `yaml:"port"`
-	SpotifyCallback      string   `yaml:"spotifyCallback"`
-	WorkerCount          uint8    `yaml:"workerCount"`
-	WorkerTimeoutSeconds uint32   `yaml:"workerTimeoutSeconds"`
-	SavedPlaylistIds     []string `yaml:"savedPlaylistIds"`
-	IgnoredPlaylistIds   []string `yaml:"ignoredPlaylistIds"`
-	SpotifyId            string
-	SpotifySecret        string
+	RunIntervalSeconds      uint64   `yaml:"runIntervalSeconds"`
+	Port                    uint32   `yaml:"port"`
+	SpotifyCallback         string   `yaml:"spotifyCallback"`
+	WorkerCount             uint8    `yaml:"workerCount"`
+	WorkerTimeoutSeconds    uint32   `yaml:"workerTimeoutSeconds"`
+	SavedPlaylistIds        []string `yaml:"savedPlaylistIds"`
+	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
+	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
+	SpotifyId               string
+	SpotifySecret           string
 }
 
 func (c *AppConfig) validate() error {
-	if c.RunIntervalSeconds < 300 {
-		return errors.New(fmt.Sprintf("appconfig: RunIntervalSeconds must be more than 300, received: %d", c.RunIntervalSeconds))
+	if c.RunIntervalSeconds == 0 {
+		return errors.New("appconfig: RunIntervalSeconds must be configured and more than 0")
 	}
 
 	if c.Port == 0 {
-		return errors.New(fmt.Sprint("appconfig: Port must be configured"))
+		return errors.New("appconfig: Port must be configured")
 	}
 
 	if c.WorkerCount == 0 {
-		return errors.New(fmt.Sprint("appconfig: WorkerCount must be configured and more than 0"))
+		return errors.New("appconfig: WorkerCount must be configured and more than 0")
 	}
 
 	if c.WorkerTimeoutSeconds < 300 {
-		return errors.New(fmt.Sprint("appconfig: WorkerTimeoutSeconds must be configured and more than 300"))
+		return errors.New("appconfig: WorkerTimeoutSeconds must be configured and more than 300")
 	}
 
 	if c.SpotifyId == "" {
-		return errors.New(fmt.Sprint("appconfig: SpotifyId must be configured"))
+		return errors.New("appconfig: SpotifyId must be configured")
 	}
 
 	if c.SpotifySecret == "" {
-		return errors.New(fmt.Sprint("appconfig: SpotifySecret must be configured"))
+		return errors.New("appconfig: SpotifySecret must be configured")
 	}
 
 	if c.SpotifyCallback == "" {
-		return errors.New(fmt.Sprint("appconfig: SpotifyCallback  must be configured"))
+		return errors.New("appconfig: SpotifyCallback  must be configured")
 	}
 
 	return nil
@@ -65,7 +66,7 @@ func (e *ConfigLoadError) Error() string {
 }
 
 func Load(path string) (*AppConfig, error) {
-	c := &AppConfig{}
+	c := &AppConfig{IgnoreNotOwnedPlaylists: true}
 
 	err := loadYaml(c, path)
 	if err != nil {

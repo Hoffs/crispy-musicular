@@ -23,6 +23,7 @@ type backuper struct {
 
 type Service interface {
 	Backup() (err error)
+	RunPeriodically(ctx context.Context)
 }
 
 func NewBackuper(c *config.AppConfig, s auth.Service, r Repository) (b Service, err error) {
@@ -79,9 +80,10 @@ func (b *backuper) Backup() (err error) {
 		return
 	}
 
-	state.bp, err = b.createBackup()
+	state.bp, err = b.createBackup(usr.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("backuper: could not create backup entry")
+		return
 	}
 
 	workers := b.config.WorkerCount
@@ -113,7 +115,7 @@ func (b *backuper) Backup() (err error) {
 			// use from array, since value from range function changes, but not the pointer
 			p := &playlists.Playlists[id]
 
-			if !b.shouldSavePlaylist(string(p.ID)) {
+			if !b.shouldSavePlaylist(usr.ID, p) {
 				log.Debug().Msgf("backuper: skipping '%s' with id '%s'", p.Name, p.ID)
 				continue
 			}
@@ -127,6 +129,7 @@ func (b *backuper) Backup() (err error) {
 
 		err = state.spotify.NextPage(playlists)
 		if err == spotify.ErrNoMorePages {
+			err = nil
 			break
 		}
 
@@ -147,7 +150,13 @@ func (b *backuper) Backup() (err error) {
 	return
 }
 
-func (b *backuper) shouldSavePlaylist(id string) (save bool) {
+func (b *backuper) shouldSavePlaylist(userId string, p *spotify.SimplePlaylist) (save bool) {
+	if b.config.IgnoreNotOwnedPlaylists && p.Owner.ID != userId {
+		return false
+	}
+
+	id := string(p.ID)
+
 	if len(b.config.SavedPlaylistIds) > 0 {
 		save = false
 		for _, savedId := range b.config.SavedPlaylistIds {
@@ -161,6 +170,25 @@ func (b *backuper) shouldSavePlaylist(id string) (save bool) {
 	}
 
 	return
+}
+
+// should be started as goroutine
+func (b *backuper) RunPeriodically(ctx context.Context) {
+	log.Info().Msg("backuper_periodic: started")
+
+	for {
+		duration := time.Duration(b.config.RunIntervalSeconds) * time.Second
+		select {
+		case <-time.After(duration):
+			err := b.Backup()
+			if err != nil {
+				log.Error().Err(err).Msg("backuper_periodic: backup finished with errors")
+			}
+		case <-ctx.Done():
+			log.Debug().Msg("backuper_periodic: context finished, stopping backups")
+			return
+		}
+	}
 }
 
 // TODO: Add method to run it on the interval (Ticker)

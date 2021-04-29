@@ -37,7 +37,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 var config_file_invalid = `
-runIntervalSeconds: 260
+runIntervalSeconds: 0
 port: 1337
 spotifyCallback: http://localhost:1337
 workerCount: 12
@@ -56,4 +56,5 @@ func TestLoadConfigInvalidValues(t *testing.T) {
 	_, err = Load(f.Name())
 
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "appconfig: RunIntervalSeconds must be configured and more than 0")
 }

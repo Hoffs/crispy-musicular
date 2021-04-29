@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	"github.com/hoffs/crispy-musicular/pkg/backup"
 	"github.com/hoffs/crispy-musicular/pkg/config"
@@ -34,6 +36,11 @@ func main() {
 		return
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go backuper.RunPeriodically(ctx)
+
+	// this is blocking
 	err = http.RegisterHandlers(conf, auth, backuper)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to register handlers")

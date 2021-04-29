@@ -53,11 +53,11 @@ func NewRepository(connString string) (Repository, error) {
 func createDatabase(db *sql.DB) error {
 	_, err := db.Exec(createDbSql)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize database")
+		log.Error().Err(err).Msg("failed to initialize database")
 		return err
 	}
 
-	log.Info().Msg("Initialized database")
+	log.Info().Msg("initialized database")
 	return nil
 }
 
