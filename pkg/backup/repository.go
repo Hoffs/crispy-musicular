@@ -13,6 +13,10 @@ type Repository interface {
 
 	UpdateBackup(b *Backup) error
 
+	GetLastBackup(userId string) (*Backup, error)
+	GetBackupPlaylistCount(b *Backup) (int64, error)
+	GetBackupTrackCount(b *Backup) (int64, error)
+	GetBackupCount(userId string) (count int64, err error)
 	// TODO: Add querying
 }
 
@@ -70,4 +74,36 @@ func formatTrackArtists(artists []spotify.SimpleArtist) string {
 	}
 
 	return artist
+}
+
+type BackupStats struct {
+	StartedAt     time.Time
+	FinishedAt    time.Time
+	PlaylistCount int64
+	TrackCount    int64
+	TotalBackups  int64
+}
+
+func (b *backuper) GetBackupStats(userId string) (stats *BackupStats, err error) {
+	stats = &BackupStats{}
+	bp, err := b.repo.GetLastBackup(userId)
+	if err != nil {
+		return
+	}
+
+	stats.StartedAt = bp.Started
+	stats.FinishedAt = bp.Finished
+
+	stats.PlaylistCount, err = b.repo.GetBackupPlaylistCount(bp)
+	if err != nil {
+		return
+	}
+
+	stats.TrackCount, err = b.repo.GetBackupTrackCount(bp)
+	if err != nil {
+		return
+	}
+
+	stats.TotalBackups, err = b.repo.GetBackupCount(userId)
+	return
 }

@@ -22,6 +22,11 @@ type Repository interface {
 	AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) error
 
 	UpdateBackup(b *bp.Backup) error
+
+	GetLastBackup(userId string) (*bp.Backup, error)
+	GetBackupPlaylistCount(b *bp.Backup) (int64, error)
+	GetBackupTrackCount(b *bp.Backup) (int64, error)
+	GetBackupCount(userId string) (count int64, err error)
 }
 
 type repository struct {

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"fmt"
 
 	bp "github.com/hoffs/crispy-musicular/pkg/backup"
@@ -55,5 +56,34 @@ func (r *repository) UpdateBackup(b *bp.Backup) (err error) {
 		err = fmt.Errorf("storage: update backup affected %d rows", affected)
 	}
 
+	return
+}
+
+func (r *repository) GetLastBackup(userId string) (b *bp.Backup, err error) {
+	b = &bp.Backup{UserId: userId}
+	result := r.db.QueryRow("SELECT id, started, finished FROM backups WHERE user_id = ? ORDER BY started DESC LIMIT 1", userId)
+	var finished sql.NullTime
+	err = result.Scan(&b.Id, &b.Started, &finished)
+	if finished.Valid {
+		b.Finished = finished.Time
+	}
+	return
+}
+
+func (r *repository) GetBackupPlaylistCount(b *bp.Backup) (count int64, err error) {
+	result := r.db.QueryRow("SELECT count(*) FROM playlists WHERE backup_id = ?", b.Id)
+	err = result.Scan(&count)
+	return
+}
+
+func (r *repository) GetBackupTrackCount(b *bp.Backup) (count int64, err error) {
+	result := r.db.QueryRow("SELECT count(*) FROM tracks WHERE backup_id = ?", b.Id)
+	err = result.Scan(&count)
+	return
+}
+
+func (r *repository) GetBackupCount(userId string) (count int64, err error) {
+	result := r.db.QueryRow("SELECT count(*) FROM backups WHERE user_id = ?", userId)
+	err = result.Scan(&count)
 	return
 }

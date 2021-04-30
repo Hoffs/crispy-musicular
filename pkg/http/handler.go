@@ -17,6 +17,7 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Service) 
 		auth:     auth,
 		spotAuth: spotify.NewAuthenticator(c.SpotifyCallback, spotify.ScopePlaylistReadPrivate),
 		backuper: b,
+		config:   c,
 		t:        NewTemplater("templates", os.Getenv("DEBUG") == ""),
 	}
 
@@ -36,6 +37,7 @@ type httpHandler struct {
 	auth         auth.Service
 	spotAuth     spotify.Authenticator
 	backuper     backup.Service
+	config       *config.AppConfig
 	t            *templater
 	spotifyState string
 	authToken    string

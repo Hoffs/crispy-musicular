@@ -24,6 +24,7 @@ type backuper struct {
 type Service interface {
 	Backup() (err error)
 	RunPeriodically(ctx context.Context)
+	GetBackupStats(userId string) (stats *BackupStats, err error)
 }
 
 func NewBackuper(c *config.AppConfig, s auth.Service, r Repository) (b Service, err error) {
@@ -145,6 +146,8 @@ func (b *backuper) Backup() (err error) {
 	if timedOut {
 		log.Warn().Msg("backuper: workers did not finish in time")
 	}
+
+	b.endBackup(state.bp)
 
 	log.Debug().Msg("backuper: finished")
 	return
