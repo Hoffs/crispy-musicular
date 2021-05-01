@@ -166,7 +166,7 @@ input::-webkit-inner-spin-button {
       }
 
       let pre = "";
-      if (!area.value.endsWith("\n")) {
+      if (!area.value.endsWith("\n") && area.value.trim().length > 0) {
         pre += "\n";
       }
 
