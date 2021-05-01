@@ -17,7 +17,7 @@ type Repository interface {
 	GetBackupPlaylistCount(b *Backup) (int64, error)
 	GetBackupTrackCount(b *Backup) (int64, error)
 	GetBackupCount(userId string) (count int64, err error)
-	// TODO: Add querying
+	// TODO: Maybe add more querying
 }
 
 func (b *backuper) createBackup(userId string) (bp *Backup, err error) {

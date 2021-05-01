@@ -30,6 +30,11 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Service) 
 	http.HandleFunc("/home", methodGuard(http.MethodGet, h.authGuard(h.homeHandler)))
 	http.HandleFunc("/backup/start", methodGuard(http.MethodPost, h.authGuard(h.backupStartHandler)))
 
+	http.HandleFunc("/config", methodGuard(http.MethodGet, h.authGuard(h.configHandler)))
+	http.HandleFunc("/config/edit", methodGuard(http.MethodGet, h.authGuard(h.editConfigHandler)))
+	http.HandleFunc("/config/edit/save", methodGuard(http.MethodPost, h.authGuard(h.saveConfigHandler)))
+	http.HandleFunc("/config/reload", methodGuard(http.MethodPost, h.authGuard(h.reloadConfigHandler)))
+
 	return http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil)
 }
 

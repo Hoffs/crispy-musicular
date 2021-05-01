@@ -46,41 +46,41 @@
   cursor: pointer;
 }
 
-.stat {
+.box {
   font-size: 1em;
   border: 1px solid #fff;
   border-radius: 2px;
   padding-bottom: 4px;
 }
 
-.stat > div {
+.box > div {
   padding: 6px 16px;
 }
 
-.stat:not(:last-of-type) {
+.box:not(:last-of-type) {
   margin-bottom: 16px;
 }
 
-.stat__header {
+.box__header {
   font-size: 1.5rem;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.stat__hint {
+.box__hint {
   font-size: 0.8rem;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.stat__item {
+.box__item {
   display: flex;
   justify-content: space-between;
 }
 
-.stat__item__name {
+.box__item__name {
   font-weight: 500;
 }
 
-.stat__item__value--list {
+.box__item__value--list {
   font-size: 0.85rem;
   text-align: right;
 }
@@ -99,10 +99,15 @@
 
     const deauthButton = document.getElementById("deauth");
     deauthButton.addEventListener("click", async () => {
-      const result = await fetch("/deauth", { redirect: "follow" });
+      const result = await fetch("/deauth");
       if (result.ok) {
         window.location = "/auth";
       }
+    });
+
+    const configButton = document.getElementById("config");
+    configButton.addEventListener("click", () => {
+      window.location = "/config"
     });
   </script>
 {{end}}
@@ -113,88 +118,31 @@
 
   <div class="actions">
     <button class="action-trigger" id="backup">Backup now</button>
+    <button class="action-trigger" id="config">Config</a>
     <button class="action-trigger" id="deauth">Logout</a>
   </div>
 
-  <div class="stat" id="backup-stats">
-    <div class="stat__header">Backup stats</div>
-    <div class="stat__item">
-      <div class="stat__item__name">Last backup started at</div>
-      <div class="stat__item__value">{{ .Stats.LastStartedAt }}</div>
+  <div class="box" id="backup-stats">
+    <div class="box__header">Backup stats</div>
+    <div class="box__item">
+      <div class="box__item__name">Last backup started at</div>
+      <div class="box__item__value">{{ .Stats.LastStartedAt }}</div>
     </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Last backup finished at</div>
-      <div class="stat__item__value">{{ .Stats.LastFinishedAt }}</div>
+    <div class="box__item">
+      <div class="box__item__name">Last backup finished at</div>
+      <div class="box__item__value">{{ .Stats.LastFinishedAt }}</div>
     </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Last backup playlist count</div>
-      <div class="stat__item__value">{{ .Stats.LastPlaylists }}</div>
+    <div class="box__item">
+      <div class="box__item__name">Last backup playlist count</div>
+      <div class="box__item__value">{{ .Stats.LastPlaylists }}</div>
     </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Last backup track count</div>
-      <div class="stat__item__value">{{ .Stats.LastTracks }}</div>
+    <div class="box__item">
+      <div class="box__item__name">Last backup track count</div>
+      <div class="box__item__value">{{ .Stats.LastTracks }}</div>
     </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Total backups</div>
-      <div class="stat__item__value">{{ .Stats.TotalBackups }}</div>
+    <div class="box__item">
+      <div class="box__item__name">Total backups</div>
+      <div class="box__item__value">{{ .Stats.TotalBackups }}</div>
     </div>
-  </div>
-
-  <div class="stat" id="config-general">
-    <div class="stat__header">Loaded general configuration</div>
-    <div class="stat__item">
-      <div class="stat__item__name">Backup Interval</div>
-      <div class="stat__item__value">{{ .Config.Interval }} seconds</div>
-    </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Worker Count</div>
-      <div class="stat__item__value">{{ .Config.WorkerCount }} workers</div>
-    </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Worker Timeout</div>
-      <div class="stat__item__value">{{ .Config.WorkerTimeout }} seconds</div>
-    </div>
-  </div>
-
-  <div class="stat" id="config-playlists">
-    <div class="stat__header">Loaded playlist configuration</div>
-    <div class="stat__hint">Copying Spotify URI into search bar and pressing enter will open the playlist.</div>
-    <div class="stat__item">
-      <div class="stat__item__name">Ignore not owned</div>
-      <div class="stat__item__value">{{ .PlaylistConfig.IgnoreNotOwned }}</div>
-    </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Saved playlist IDs</div>
-      <div class="stat__item__value--list">
-        {{range .PlaylistConfig.SavedIds}}
-          <div>spotify:playlist:{{.}}</div>
-        {{end}}
-      </div>
-    </div>
-    <div class="stat__item">
-      <div class="stat__item__name">Ignored playlist IDs</div>
-      <div class="stat__item__value--list">
-        {{range .PlaylistConfig.IgnoredIds}}
-          <div>spotify:playlist:{{.}}</div>
-        {{end}}
-      </div>
-    </div>
-  </div>
-
-  <div class="stat">
-    TODO: Last backup
-  </div>
-
-  <div class="stat">
-    TODO: Next backup
-  </div>
-
-  <div class="stat">
-    TODO: Total backups
-  </div>
-
-  <div class="stat">
-    TODO: Last backup playlist/song count
-  </div>
 </div>
 {{end}}

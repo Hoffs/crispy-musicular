@@ -1,0 +1,262 @@
+{{define "entrypoint"}}
+  {{template "main-layout" .}}
+{{end}}
+
+{{define "body-style"}}
+<style>
+.content {
+  padding-top: 24px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr min(60ch, calc(100% - 64px)) 1fr;
+  grid-column-gap: 32px;
+}
+
+.content > * {
+  grid-column: 2;
+}
+
+.content__header {
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 4px solid #1ED760;
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 16px;
+}
+
+.action-trigger {
+  text-decoration: none;
+  background: none;
+  font-size: 1.2em;
+  border: 2px solid #B2B2B2;
+  color: #B2B2B2;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: 0.1s;
+}
+
+.action-trigger:hover {
+  border-color: #FFF;
+  color: #FFF;
+  cursor: pointer;
+}
+
+.box {
+  font-size: 1em;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  padding-bottom: 4px;
+}
+
+.box > div {
+  padding: 6px 16px;
+}
+
+.box:not(:last-of-type) {
+  margin-bottom: 16px;
+}
+
+.box__header {
+  font-size: 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.box__hint {
+  font-size: 0.8rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.box__item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.box__item--filled {
+  display: flex;
+}
+
+.box__item__name {
+  font-weight: 500;
+}
+
+.box__item__value--area {
+  text-align: right;
+  background: none;
+  color: var(--text-color);
+  margin-left: 12px;
+  padding: 2px 4px;
+  resize: none;
+  flex: 1;
+}
+
+.box__item__value--input {
+  text-align: right;
+  background: none;
+  color: var(--text-color);
+  padding: 2px 4px;
+  border: 1px solid grey;
+}
+
+.box__item__value--single {
+  flex: 1;
+  margin-right: 4px;
+  font-size: 0.9rem;
+  overflow-wrap: break-word;
+  min-width: 0; /* to make overflow-wrap work since it needs non auto width for flex items */
+}
+
+.box__item__save, .box__item__ignore {
+  background: none;
+  border: 1px solid var(--text-color);
+  border-radius: 2px;
+  padding: 2px 4px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.box__item__save:hover, .box__item__ignore:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+.box__item__save {
+  margin-right: 4px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    display: none;
+}
+</style>
+{{end}}
+
+{{define "body-script"}}
+  <script>
+    const homeButton = document.getElementById("home");
+    homeButton.addEventListener("click", async () => {
+      window.location = "/home";
+    });
+
+    const deauthButton = document.getElementById("deauth");
+    deauthButton.addEventListener("click", async () => {
+      const result = await fetch("/deauth");
+      if (result.ok) {
+        window.location = "/auth";
+      }
+    });
+
+    const cancelButton = document.getElementById("cancel");
+    cancelButton.addEventListener("click", async () => {
+      window.location = "/config";
+    });
+
+    const savedIds = document.getElementById("saved")
+    const ignoredIds = document.getElementById("ignored")
+
+    const addToTextArea = (area) => (e) => {
+      const value = e.target.getAttribute("data-uri");
+      if (area.value.indexOf(value) !== -1) {
+        return
+      }
+
+      let pre = "";
+      if (!area.value.endsWith("\n")) {
+        pre += "\n";
+      }
+
+      area.value += `${pre}${value}`;
+    }
+
+    const addToSaved = addToTextArea(savedIds);
+    const addToIgnored = addToTextArea(ignoredIds);
+
+    Array.from(document.getElementsByClassName("box__item__save")).forEach(e => e.addEventListener("click", addToSaved));
+    Array.from(document.getElementsByClassName("box__item__ignore")).forEach(e => e.addEventListener("click", addToIgnored));
+  </script>
+{{end}}
+
+{{define "body"}}
+<div class="content">
+  <h2 class="content__header">spotify_backups / {{ .User }} / config / edit</h1>
+
+  <div class="actions">
+    <button class="action-trigger" id="home">Home</a>
+    <button class="action-trigger" id="deauth">Logout</a>
+  </div>
+
+  <form action="/config/edit/save" method="post">
+    <div class="box" id="config-general">
+      <div class="box__header">Editing general configuration</div>
+      <div class="box__item">
+        <div class="box__item__name">Backup Interval</div>
+        <div class="box__item__value">
+          <input class="box__item__value--input" type="number" id="interval" name="interval" min="0" value="{{ .Config.Interval }}" required>
+          seconds
+        </div>
+      </div>
+      <div class="box__item">
+        <div class="box__item__name">Worker Count</div>
+        <div class="box__item__value">
+          <input class="box__item__value--input" type="number" id="workers" name="workers" min="0" value="{{ .Config.WorkerCount }}" required>
+          workers
+        </div>
+      </div>
+      <div class="box__item">
+        <div class="box__item__name">Worker Timeout</div>
+        <div class="box__item__value">
+          <input class="box__item__value--input" type="number" id="timeout" name="timeout" min="0" value="{{ .Config.WorkerTimeout  }}" required>
+          seconds
+        </div>
+      </div>
+    </div>
+
+    <div class="box" id="config-playlists">
+      <div class="box__header">Editing playlist configuration</div>
+      <div class="box__hint">Copying Spotify URI into search bar and pressing enter will open the playlist.</div>
+      <div class="box__item">
+        <div class="box__item__name">Ignore not owned</div>
+        <div class="box__item__value">
+          <input title="Ignore not owned playlists" type="checkbox" id="ignore_not_owned" name="ignore_not_owned" value="true" {{ if .PlaylistConfig.IgnoreNotOwned  }}checked{{end}}>
+        </div>
+      </div>
+      <div class="box__item">
+        <div class="box__item__name">Saved playlist IDs</div>
+        {{/* This is formatted specifically to produce a list of strings without any extra whitespace */}}
+        <textarea class="box__item__value--area" id="saved" name="saved" rows="8">
+          {{- range .PlaylistConfig.SavedIds -}}spotify:playlist:{{. | printf "%s\n"}}{{end -}}
+        </textarea>
+      </div>
+      <div class="box__item">
+        <div class="box__item__name">Ignored playlist IDs</div>
+        {{/* This is formatted specifically to produce a list of strings without any extra whitespace */}}
+        <textarea class="box__item__value--area" id="ignored" name="ignored" rows="8">
+          {{- range .PlaylistConfig.IgnoredIds -}}spotify:playlist:{{. | printf "%s\n"}}{{end -}}
+        </textarea>
+      </div>
+    </div>
+
+    <div class="box" id="config-playlists">
+      <div class="box__header">User playlists</div>
+      {{range .Playlists}}
+      <div class="box__item">
+          <div class="box__item__value--single">{{.Name}}</div>
+          <div class="box__item__value--single">{{.URI}}</div>
+          <button type="button" {{ .URIAttr }} class="box__item__save">Save</button>
+          <button type="button" {{ .URIAttr }} class="box__item__ignore">Ignore</button>
+      </div>
+      {{end}}
+    </div>
+
+    <div class="actions">
+      <button type="button" class="action-trigger" id="cancel">Cancel</a>
+      <button type="submit" class="action-trigger" id="save">Save</a>
+    </div>
+  </form>
+</div>
+{{end}}

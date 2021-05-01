@@ -65,7 +65,6 @@ func (h *httpHandler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *httpHandler) authHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Instead of redirect use spotify styled button
 	s, err := rand.String(16)
 	if err != nil {
 		h.renderError(w, "Failed to generate random state", err)
@@ -79,6 +78,13 @@ func (h *httpHandler) authHandler(w http.ResponseWriter, r *http.Request) {
 		AuthUrl string
 	}{
 		h.spotAuth.AuthURL(h.spotifyState),
+	}
+
+	_, err = r.Cookie(authCookieName)
+	if err == nil {
+		// cookie exists, redirect to auth immediately
+		http.Redirect(w, r, d.AuthUrl, http.StatusFound)
+		return
 	}
 
 	h.t.renderTemplate(w, "auth.tmpl", d)
@@ -102,13 +108,19 @@ func (h *httpHandler) authTestHandler(w http.ResponseWriter, r *http.Request) {
 func (h *httpHandler) authGuard(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie(authCookieName)
-		if err != nil || c.Value != h.authToken {
-			log.Debug().Err(err).Msg("Received request with invalid authorization")
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
+		if err == nil && c.Value == h.authToken {
+			handler(w, r)
 			return
 		}
 
-		handler(w, r)
+		log.Debug().Err(err).Msg("Received request with invalid authorization")
+		if r.Method == http.MethodGet {
+			http.Redirect(w, r, "/auth", http.StatusFound)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 	}
 }
 

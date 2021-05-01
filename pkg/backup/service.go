@@ -193,5 +193,3 @@ func (b *backuper) RunPeriodically(ctx context.Context) {
 		}
 	}
 }
-
-// TODO: Add method to run it on the interval (Ticker)

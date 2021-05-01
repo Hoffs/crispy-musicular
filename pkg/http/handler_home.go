@@ -6,22 +6,8 @@ import (
 )
 
 type homePageData struct {
-	User           string
-	Config         homePageConfig
-	PlaylistConfig homePagePlaylistConfig
-	Stats          homePageStats
-}
-
-type homePageConfig struct {
-	Interval      uint64
-	WorkerCount   uint8
-	WorkerTimeout uint32
-}
-
-type homePagePlaylistConfig struct {
-	IgnoreNotOwned bool
-	SavedIds       []string
-	IgnoredIds     []string
+	User  string
+	Stats homePageStats
 }
 
 type homePageStats struct {
@@ -58,16 +44,6 @@ func (h *httpHandler) homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	d := homePageData{
 		User: st.User,
-		Config: homePageConfig{
-			Interval:      h.config.RunIntervalSeconds,
-			WorkerCount:   h.config.WorkerCount,
-			WorkerTimeout: h.config.WorkerTimeoutSeconds,
-		},
-		PlaylistConfig: homePagePlaylistConfig{
-			IgnoreNotOwned: h.config.IgnoreNotOwnedPlaylists,
-			SavedIds:       h.config.SavedPlaylistIds,
-			IgnoredIds:     h.config.IgnoredPlaylistIds,
-		},
 		Stats: homePageStats{
 			LastStartedAt:  formattedTime{backupStats.StartedAt},
 			LastFinishedAt: formattedTime{backupStats.FinishedAt},

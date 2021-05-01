@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 
@@ -20,8 +21,9 @@ type AppConfig struct {
 	SavedPlaylistIds        []string `yaml:"savedPlaylistIds"`
 	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
 	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
-	SpotifyId               string
-	SpotifySecret           string
+	SpotifyId               string   `yaml:"-"`
+	SpotifySecret           string   `yaml:"-"`
+	path                    string   `yaml:"-"`
 }
 
 func (c *AppConfig) validate() error {
@@ -66,9 +68,9 @@ func (e *ConfigLoadError) Error() string {
 }
 
 func Load(path string) (*AppConfig, error) {
-	c := &AppConfig{IgnoreNotOwnedPlaylists: true}
+	c := &AppConfig{IgnoreNotOwnedPlaylists: true, path: path}
 
-	err := loadYaml(c, path)
+	err := loadYaml(c)
 	if err != nil {
 		return nil, &ConfigLoadError{Path: path, Err: err}
 	}
@@ -83,12 +85,12 @@ func Load(path string) (*AppConfig, error) {
 	return c, nil
 }
 
-func loadYaml(c *AppConfig, path string) error {
-	if path == "" {
+func loadYaml(c *AppConfig) error {
+	if c.path == "" {
 		return errors.New("no path provided")
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(c.path)
 	if err != nil {
 		return err
 	}
@@ -107,4 +109,86 @@ func loadEnv(c *AppConfig) {
 
 	c.SpotifyId = os.Getenv("SPOTIFY_ID")
 	c.SpotifySecret = os.Getenv("SPOTIFY_SECRET")
+}
+
+// doesn't reload ENV based config values
+func (c *AppConfig) Reload() (err error) {
+	// this is good enough to make a copy because there are no deep refs
+	newConf := (*c)
+	err = loadYaml(&newConf)
+	if err != nil {
+		return
+	}
+
+	err = newConf.validate()
+	if err != nil {
+		return
+	}
+
+	// if new config valid and loaded update config values
+	applyChangeableValues(&newConf, c)
+
+	return
+}
+
+// updates current config with values found in newConf
+// and saves it to disk
+func (c *AppConfig) Update(newConf *AppConfig) (err error) {
+	err = newConf.validate()
+	if err != nil {
+		return
+	}
+
+	oldCopy := (*c)
+
+	applyChangeableValues(newConf, c)
+
+	err = c.Persist()
+	if err != nil {
+		applyChangeableValues(&oldCopy, c)
+		return
+	}
+
+	return
+}
+
+func applyChangeableValues(from *AppConfig, to *AppConfig) {
+	to.RunIntervalSeconds = from.RunIntervalSeconds
+	to.WorkerCount = from.WorkerCount
+	to.WorkerTimeoutSeconds = from.WorkerTimeoutSeconds
+	to.SavedPlaylistIds = from.SavedPlaylistIds
+	to.IgnoredPlaylistIds = from.IgnoredPlaylistIds
+	to.IgnoreNotOwnedPlaylists = from.IgnoreNotOwnedPlaylists
+}
+
+// persists config on disk in multiple stages
+// tries to create temp file, write to it then
+// rename that to original location replacing
+// previous version
+func (c *AppConfig) Persist() (err error) {
+	err = c.validate()
+	if err != nil {
+		return
+	}
+
+	f, err := os.CreateTemp("", "tempconf")
+	if err != nil {
+		return
+	}
+
+	defer os.Remove(f.Name())
+
+	cYaml, err := yaml.Marshal(c)
+
+	err = os.WriteFile(f.Name(), cYaml, fs.ModeAppend)
+	if err != nil {
+		return
+	}
+
+	err = os.Rename(f.Name(), c.path)
+	if err != nil {
+		return
+	}
+
+	return
 }
