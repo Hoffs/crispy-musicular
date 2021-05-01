@@ -87,3 +87,46 @@ func (r *repository) GetBackupCount(userId string) (count int64, err error) {
 	err = result.Scan(&count)
 	return
 }
+
+func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Track, err error) {
+	var lp []bp.Playlist
+	var lt []bp.Track
+	p = &lp
+	t = &lt
+
+	result, err := r.db.Query(
+		"SELECT spotify_id, name, created FROM playlists WHERE backup_id = ?",
+		b.Id)
+	if err != nil {
+		return
+	}
+
+	for result.Next() {
+		sp := bp.Playlist{}
+		err = result.Scan(&sp.SpotifyId, &sp.Name, &sp.Created)
+		if err != nil {
+			return
+		}
+
+		lp = append(lp, sp)
+	}
+
+	result, err = r.db.Query(
+		"SELECT spotify_id, name, artist, album, added_at_to_playlist, created FROM tracks WHERE backup_id = ?",
+		b.Id)
+	if err != nil {
+		return
+	}
+
+	for result.Next() {
+		st := bp.Track{}
+		err = result.Scan(&st.SpotifyId, &st.Name, &st.Artist, &st.Album, &st.AddedAtToPlaylist, &st.Created)
+		if err != nil {
+			return
+		}
+
+		lt = append(lt, st)
+	}
+
+	return
+}

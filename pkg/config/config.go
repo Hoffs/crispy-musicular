@@ -21,6 +21,7 @@ type AppConfig struct {
 	SavedPlaylistIds        []string `yaml:"savedPlaylistIds"`
 	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
 	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
+	JsonPath                string   `yaml:"jsonPath"`
 	SpotifyId               string   `yaml:"-"`
 	SpotifySecret           string   `yaml:"-"`
 	path                    string   `yaml:"-"`

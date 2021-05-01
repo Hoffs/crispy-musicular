@@ -26,7 +26,8 @@ type Repository interface {
 	GetLastBackup(userId string) (*bp.Backup, error)
 	GetBackupPlaylistCount(b *bp.Backup) (int64, error)
 	GetBackupTrackCount(b *bp.Backup) (int64, error)
-	GetBackupCount(userId string) (count int64, err error)
+	GetBackupCount(userId string) (int64, error)
+	GetBackupData(b *bp.Backup) (*[]bp.Playlist, *[]bp.Track, error)
 }
 
 type repository struct {

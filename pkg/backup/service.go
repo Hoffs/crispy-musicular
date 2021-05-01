@@ -16,9 +16,10 @@ import (
 )
 
 type backuper struct {
-	config *config.AppConfig
-	auth   auth.Service
-	repo   Repository
+	config  *config.AppConfig
+	auth    auth.Service
+	repo    Repository
+	actions []PostBackupAction
 }
 
 type Service interface {
@@ -27,7 +28,7 @@ type Service interface {
 	GetBackupStats(userId string) (stats *BackupStats, err error)
 }
 
-func NewBackuper(c *config.AppConfig, s auth.Service, r Repository) (b Service, err error) {
+func NewBackuper(c *config.AppConfig, s auth.Service, r Repository, actions ...PostBackupAction) (b Service, err error) {
 	if c == nil {
 		err = errors.New("backuper: config is nil")
 		return
@@ -39,9 +40,10 @@ func NewBackuper(c *config.AppConfig, s auth.Service, r Repository) (b Service, 
 	}
 
 	b = &backuper{
-		config: c,
-		auth:   s,
-		repo:   r,
+		config:  c,
+		auth:    s,
+		repo:    r,
+		actions: actions,
 	}
 	return
 }
@@ -148,6 +150,12 @@ func (b *backuper) Backup() (err error) {
 	}
 
 	b.endBackup(state.bp)
+
+	// run actions on backup
+	p, t, err := b.repo.GetBackupData(state.bp)
+	for _, act := range b.actions {
+		act.Do(state.bp, p, t)
+	}
 
 	log.Debug().Msg("backuper: finished")
 	return

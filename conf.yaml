@@ -9,3 +9,4 @@ ignoredPlaylistIds:
     - 37i9dQZEVXcJxejTjzLr0d
     - 1w1lZi847C0HqUTLwDObhN
 ignoreNotOwnedPlaylists: true
+jsonPath: "json/"

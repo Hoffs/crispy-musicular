@@ -3,7 +3,7 @@ package backup
 import "time"
 
 type Track struct {
-	Id                uint64
+	Id                uint64 `json:"-"`
 	SpotifyId         string
 	Name              string
 	Artist            string

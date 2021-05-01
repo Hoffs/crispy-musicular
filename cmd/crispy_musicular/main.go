@@ -5,6 +5,7 @@ import (
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	"github.com/hoffs/crispy-musicular/pkg/backup"
+	"github.com/hoffs/crispy-musicular/pkg/backup/actions"
 	"github.com/hoffs/crispy-musicular/pkg/config"
 	"github.com/hoffs/crispy-musicular/pkg/http"
 	"github.com/hoffs/crispy-musicular/pkg/storage"
@@ -30,7 +31,13 @@ func main() {
 		return
 	}
 
-	backuper, err := backup.NewBackuper(conf, auth, r)
+	jsonBackup, err := actions.NewJsonBackupAction(conf.JsonPath)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create backuper json action")
+		return
+	}
+
+	backuper, err := backup.NewBackuper(conf, auth, r, jsonBackup)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create backuper")
 		return

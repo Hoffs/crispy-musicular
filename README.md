@@ -81,3 +81,34 @@ groovy soul/funk|Keni Burke|Risin' to the Top|Changes (Expanded Edition)
 groovy soul/funk|Rene & Angela|I Love You More - Remastered|Classic Masters
 groovy soul/funk|Evelyn "Champagne" King|The Show Is Over|Smooth Talk (Expanded Edition)
 ```
+
+### JSON Output
+
+```
+{
+  "Backup": {
+    "Id": 248,
+    "UserId": "hoffs_",
+    "Started": "2021-05-02T02:10:39.492683706+03:00",
+    "Finished": "2021-05-02T02:10:39.802793961+03:00"
+  },
+  "Playlists": [
+    {
+      "SpotifyId": "1S5lezXowh4JI0V0izDbd4",
+      "Name": "easy soul vibe",
+      "Created": "2021-05-02T02:10:39.755209866+03:00"
+    }
+  ],
+  "Tracks": [
+    {
+      "SpotifyId": "4X4NrHp5VpibgirzuImxXd",
+      "Name": "Merry Go Round",
+      "Artist": "The Equatics",
+      "Album": "Doin It!!!!",
+      "AddedAtToPlaylist": "2021-02-05T18:40:28Z",
+      "Created": "2021-05-02T02:10:39.758696475+03:00"
+    },
+    ...
+  ]
+}
+```
