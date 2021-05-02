@@ -95,7 +95,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 	t = &lt
 
 	result, err := r.db.Query(
-		"SELECT spotify_id, name, created FROM playlists WHERE backup_id = ?",
+		"SELECT id, spotify_id, name, created FROM playlists WHERE backup_id = ?",
 		b.Id)
 	if err != nil {
 		return
@@ -103,7 +103,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 
 	for result.Next() {
 		sp := bp.Playlist{}
-		err = result.Scan(&sp.SpotifyId, &sp.Name, &sp.Created)
+		err = result.Scan(&sp.Id, &sp.SpotifyId, &sp.Name, &sp.Created)
 		if err != nil {
 			return
 		}
@@ -112,7 +112,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 	}
 
 	result, err = r.db.Query(
-		"SELECT spotify_id, name, artist, album, added_at_to_playlist, created FROM tracks WHERE backup_id = ?",
+		"SELECT id, spotify_id, name, artist, album, added_at_to_playlist, created, playlist_id FROM tracks WHERE backup_id = ?",
 		b.Id)
 	if err != nil {
 		return
@@ -120,7 +120,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 
 	for result.Next() {
 		st := bp.Track{}
-		err = result.Scan(&st.SpotifyId, &st.Name, &st.Artist, &st.Album, &st.AddedAtToPlaylist, &st.Created)
+		err = result.Scan(&st.Id, &st.SpotifyId, &st.Name, &st.Artist, &st.Album, &st.AddedAtToPlaylist, &st.Created, &st.PlaylistId)
 		if err != nil {
 			return
 		}
