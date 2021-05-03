@@ -31,8 +31,9 @@ func (b *backuper) createBackup(userId string) (bp *Backup, err error) {
 	return
 }
 
-func (b *backuper) endBackup(bp *Backup) (err error) {
+func (b *backuper) endBackup(bp *Backup, isOk bool) (err error) {
 	bp.Finished = time.Now()
+	bp.Success = isOk
 
 	err = b.repo.UpdateBackup(bp)
 
@@ -80,6 +81,7 @@ func formatTrackArtists(artists []spotify.SimpleArtist) string {
 type BackupStats struct {
 	StartedAt     time.Time
 	FinishedAt    time.Time
+	Successful    bool
 	PlaylistCount int64
 	TrackCount    int64
 	TotalBackups  int64
@@ -94,6 +96,7 @@ func (b *backuper) GetBackupStats(userId string) (stats *BackupStats, err error)
 
 	stats.StartedAt = bp.Started
 	stats.FinishedAt = bp.Finished
+	stats.Successful = bp.Success
 
 	stats.PlaylistCount, err = b.repo.GetBackupPlaylistCount(bp)
 	if err != nil {

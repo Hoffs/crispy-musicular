@@ -13,6 +13,7 @@ type homePageData struct {
 type homePageStats struct {
 	LastStartedAt  formattedTime
 	LastFinishedAt formattedTime
+	LastSuccessful bool
 	LastPlaylists  int64
 	LastTracks     int64
 	TotalBackups   int64
@@ -47,6 +48,7 @@ func (h *httpHandler) homeHandler(w http.ResponseWriter, r *http.Request) {
 		Stats: homePageStats{
 			LastStartedAt:  formattedTime{backupStats.StartedAt},
 			LastFinishedAt: formattedTime{backupStats.FinishedAt},
+			LastSuccessful: backupStats.Successful,
 			LastPlaylists:  backupStats.PlaylistCount,
 			LastTracks:     backupStats.TrackCount,
 			TotalBackups:   backupStats.TotalBackups,

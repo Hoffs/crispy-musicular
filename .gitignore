@@ -20,6 +20,7 @@
 # binaries
 /crispy_musicular
 TODO.md
-data.db
+*.db
+*.db-*
 
 /json

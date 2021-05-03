@@ -166,10 +166,9 @@ func (b *backuper) Backup() (err error) {
 	}
 
 	log.Info().Msgf("backuper: finished, is ok: %t", backupOk)
+	b.endBackup(state.bp, backupOk)
 
 	if backupOk {
-		b.endBackup(state.bp)
-
 		// run actions on backup
 		p, t, err := b.repo.GetBackupData(state.bp)
 		if err != nil {

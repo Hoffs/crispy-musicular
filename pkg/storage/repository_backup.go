@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	bp "github.com/hoffs/crispy-musicular/pkg/backup"
@@ -46,7 +47,7 @@ func (r *repository) AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) (err er
 }
 
 func (r *repository) UpdateBackup(b *bp.Backup) (err error) {
-	result, err := r.db.Exec("UPDATE backups SET finished = ? WHERE id = ?", b.Finished, b.Id)
+	result, err := r.db.Exec("UPDATE backups SET success = ?, finished = ? WHERE id = ?", b.Success, b.Finished, b.Id)
 	if err != nil {
 		return
 	}
@@ -61,12 +62,22 @@ func (r *repository) UpdateBackup(b *bp.Backup) (err error) {
 
 func (r *repository) GetLastBackup(userId string) (b *bp.Backup, err error) {
 	b = &bp.Backup{UserId: userId}
-	result := r.db.QueryRow("SELECT id, started, finished FROM backups WHERE user_id = ? ORDER BY started DESC LIMIT 1", userId)
+	result := r.db.QueryRow("SELECT id, success, started, finished FROM backups WHERE user_id = ? ORDER BY started DESC LIMIT 1", userId)
 	var finished sql.NullTime
-	err = result.Scan(&b.Id, &b.Started, &finished)
+	var ok sql.NullBool
+	err = result.Scan(&b.Id, &ok, &b.Started, &finished)
+	if errors.Is(err, sql.ErrNoRows) {
+		return b, nil
+	}
+
 	if finished.Valid {
 		b.Finished = finished.Time
 	}
+
+	if ok.Valid {
+		b.Success = ok.Bool
+	}
+
 	return
 }
 
@@ -100,6 +111,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 	if err != nil {
 		return
 	}
+	defer result.Close()
 
 	for result.Next() {
 		sp := bp.Playlist{}
@@ -117,6 +129,7 @@ func (r *repository) GetBackupData(b *bp.Backup) (p *[]bp.Playlist, t *[]bp.Trac
 	if err != nil {
 		return
 	}
+	defer result.Close()
 
 	for result.Next() {
 		st := bp.Track{}

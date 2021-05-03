@@ -41,11 +41,16 @@ func NewRepository(connString string) (Repository, error) {
 
 	r := &repository{}
 
-	conn, err := sql.Open("sqlite3", connString)
+	// If multiple writes happen at same time sqlite might be "locked"
+	// this and max open conns should help with that (https://github.com/mattn/go-sqlite3/issues/274)
+	opts := "?cache=shared&_journal=WAL"
+
+	conn, err := sql.Open("sqlite3", connString+opts)
 	if err != nil {
 		return r, err
 	}
 
+	conn.SetMaxOpenConns(1)
 	r.db = conn
 
 	err = createDatabase(conn)

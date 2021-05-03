@@ -26,7 +26,7 @@ func (b *backuper) worker(st *backupState, playlists <-chan *spotify.SimplePlayl
 			err = b.savePlaylist(st, p)
 			if err != nil {
 				// don't exit, try to save other playlists
-				log.Error().Err(err).Msgf("backup_worker: encountered an error while saving playlist '%s'", p.Name)
+				log.Error().Err(err).Msgf("backuper_worker: encountered an error while saving playlist '%s'", p.Name)
 			}
 		case <-st.ctx.Done():
 			log.Debug().Msg("backuper_worker: exiting")
