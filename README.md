@@ -40,7 +40,7 @@ run.
 
 Performance on my machine is not bad, running a backup with 8 workers on 41 playlists with total of
 4.2k tracks takes ~3-5seconds. This might be impacted by API ratelimit being breached and other factors,
-but it is definitely good enough.
+but it is definitely good enough. With 1 worker it ran for about 12 seconds.
 
 ### Logging
 
