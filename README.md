@@ -3,7 +3,7 @@
 Utility to backup Spotify playlists locally.
 
 Due to a growing amount of songs being stored in Spotify playlists the event of losing
-those playlists would be pretty devastating. This tool is aimed to aleviate that risk by
+those playlists would be pretty devastating. This tool is aimed to alleviate that risk by
 making regular backups of all user playlists and storing them somewhere safe so if such
 thing ever happens, the actual song names are still preserved and playlists can be recreated
 either on other platform or just by acquiring songs.
@@ -54,6 +54,8 @@ Currently there is not log file rollover or truncation, it will only be appended
 
 Due to some strange reason Spotify oauth endpoint sometimes returns 503 error when trying to refresh token.
 This is intermittent and probably can only be resolved by spotify or by retrying certain actions manually.
+
+`oauth2: cannot fetch token: 503 Service Unavailable`
 
 #### Permissions
 
