@@ -37,7 +37,7 @@ func NewService(r Repository) (s Service, err error) {
 }
 
 func (s *service) GetState() (State, error) {
-	// TODO: Cache this to avoid querying DB everytime.
+	// IMPROVEMENT: cache this to avoid querying DB everytime.
 	return s.r.GetState()
 }
 

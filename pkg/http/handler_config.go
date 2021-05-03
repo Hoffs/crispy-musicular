@@ -32,9 +32,8 @@ type configPagePlaylistConfig struct {
 
 func (h *httpHandler) configHandler(w http.ResponseWriter, r *http.Request) {
 	st, err := h.auth.GetState()
-	// TODO: figure out something to handle these errors easier
 	if err != nil {
-		h.renderError(w, "No state found", err)
+		h.renderError(w, "no state found", err)
 	}
 
 	d := configPageData{
@@ -67,7 +66,6 @@ type configEditPageData struct {
 
 func (h *httpHandler) editConfigHandler(w http.ResponseWriter, r *http.Request) {
 	st, err := h.auth.GetState()
-	// TODO: figure out something to handle these errors easier
 	if err != nil {
 		h.renderError(w, "No state found", err)
 	}
@@ -75,7 +73,7 @@ func (h *httpHandler) editConfigHandler(w http.ResponseWriter, r *http.Request) 
 	c := h.spotAuth.NewClient(&oauth2.Token{RefreshToken: st.RefreshToken})
 	p, err := loadUserPlaylists(&c)
 	if err != nil {
-		h.renderError(w, "failed to load user playlists", err)
+		h.renderError(w, "Failed to load user playlists", err)
 		return
 	}
 
@@ -136,28 +134,28 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 	err := r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to parse form data")
-		http.Error(w, "failed to parse form data", 500)
+		http.Error(w, "Failed to parse form data", 500)
 		return
 	}
 
 	interval, err := strconv.ParseUint(r.PostForm.Get("interval"), 10, 64)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to parse interval")
-		http.Error(w, "incorrect values", 400)
+		http.Error(w, "Incorrect values", 400)
 		return
 	}
 
 	workers, err := strconv.ParseUint(r.PostForm.Get("workers"), 10, 8)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to parse workers")
-		http.Error(w, "incorrect values", 400)
+		http.Error(w, "Incorrect values", 400)
 		return
 	}
 
 	timeout, err := strconv.ParseUint(r.PostForm.Get("timeout"), 10, 32)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to parse timeout")
-		http.Error(w, "incorrect values", 400)
+		http.Error(w, "Incorrect values", 400)
 		return
 	}
 
@@ -167,7 +165,7 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 		ignoreNotOwned, err = strconv.ParseBool(ignoreValue)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to parse ignore_not_owned")
-			http.Error(w, "incorrect values", 400)
+			http.Error(w, "Incorrect values", 400)
 			return
 		}
 	}

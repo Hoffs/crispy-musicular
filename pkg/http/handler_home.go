@@ -32,7 +32,6 @@ func (ft formattedTime) String() string {
 
 func (h *httpHandler) homeHandler(w http.ResponseWriter, r *http.Request) {
 	st, err := h.auth.GetState()
-	// TODO: figure out something to handle these errors easier
 	if err != nil {
 		h.renderError(w, "No state found", err)
 	}
