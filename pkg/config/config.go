@@ -6,8 +6,8 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
+	"path"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,7 +21,8 @@ type AppConfig struct {
 	SavedPlaylistIds        []string `yaml:"savedPlaylistIds"`
 	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
 	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
-	JsonPath                string   `yaml:"jsonPath"`
+	JsonDir                 string   `yaml:"jsonDir"`
+	DbPath                  string   `yaml:"dbPath"`
 	SpotifyId               string   `yaml:"-"`
 	SpotifySecret           string   `yaml:"-"`
 	path                    string   `yaml:"-"`
@@ -69,7 +70,7 @@ func (e *ConfigLoadError) Error() string {
 }
 
 func Load(path string) (*AppConfig, error) {
-	c := &AppConfig{IgnoreNotOwnedPlaylists: true, path: path}
+	c := &AppConfig{IgnoreNotOwnedPlaylists: true, path: path, JsonDir: "json/", DbPath: "db/data.db"}
 
 	err := loadYaml(c)
 	if err != nil {
@@ -105,9 +106,6 @@ func loadYaml(c *AppConfig) error {
 }
 
 func loadEnv(c *AppConfig) {
-	_ = godotenv.Load()
-	_ = godotenv.Load(".env.local")
-
 	c.SpotifyId = os.Getenv("SPOTIFY_ID")
 	c.SpotifySecret = os.Getenv("SPOTIFY_SECRET")
 }
@@ -172,7 +170,9 @@ func (c *AppConfig) Persist() (err error) {
 		return
 	}
 
-	f, err := os.CreateTemp("", "tempconf")
+	// create temporary inside same directory as original
+	// to avoid some issues with cross linking and/or perms
+	f, err := os.CreateTemp(path.Dir(c.path), "tempconf")
 	if err != nil {
 		return
 	}

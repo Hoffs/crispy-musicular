@@ -45,7 +45,7 @@ func (s *jsonBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t *[]bac
 		return
 	}
 
-	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+	f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
 	if err != nil {
 		log.Error().Err(err).Msgf("json_backup_action: failed to open file at %s", fpath)
 		return

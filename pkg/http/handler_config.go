@@ -181,7 +181,12 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 	cCopy.SavedPlaylistIds = savedIds
 	cCopy.IgnoredPlaylistIds = ignoredIds
 
-	h.config.Update(&cCopy)
+	err = h.config.Update(&cCopy)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to update config")
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
 
 	http.Redirect(w, r, "/config", http.StatusFound)
 }

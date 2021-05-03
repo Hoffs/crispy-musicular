@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"io"
+	"os"
+	"path"
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	"github.com/hoffs/crispy-musicular/pkg/backup"
@@ -9,19 +12,44 @@ import (
 	"github.com/hoffs/crispy-musicular/pkg/config"
 	"github.com/hoffs/crispy-musicular/pkg/http"
 	"github.com/hoffs/crispy-musicular/pkg/storage"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 )
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 func main() {
-	r, err := storage.NewRepository("data.db")
+	err := os.MkdirAll("log", 0777)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load database")
+		log.Error().Err(err).Msg("failed to create log directory")
 		return
 	}
 
-	conf, err := config.Load("conf.yaml")
+	logFile, err := os.OpenFile(path.Join(getEnv("LOG_DIR", "log"), "crispy.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to open log file")
+		return
+	}
+
+	log.Logger = log.Output(io.MultiWriter(os.Stdout, logFile))
+	// load .env before anything else
+	_ = godotenv.Load()
+	_ = godotenv.Load(".env.local")
+
+	conf, err := config.Load(getEnv("CONFIG_PATH", "conf.yaml"))
 	if err != nil {
 		log.Error().Err(err).Msg("failed to load config")
+		return
+	}
+
+	r, err := storage.NewRepository(conf.DbPath)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to load database")
 		return
 	}
 
@@ -31,7 +59,7 @@ func main() {
 		return
 	}
 
-	jsonBackup, err := actions.NewJsonBackupAction(conf.JsonPath)
+	jsonBackup, err := actions.NewJsonBackupAction(conf.JsonDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create backuper json action")
 		return

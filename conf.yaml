@@ -1,4 +1,4 @@
-runIntervalSeconds: 300
+runIntervalSeconds: 1800
 port: 3333
 spotifyCallback: http://localhost:3333/callback
 workerCount: 8
@@ -9,4 +9,5 @@ ignoredPlaylistIds:
     - 37i9dQZEVXcJxejTjzLr0d
     - 1w1lZi847C0HqUTLwDObhN
 ignoreNotOwnedPlaylists: true
-jsonPath: "json/"
+jsonDir: json/
+dbPath: data/a.db
