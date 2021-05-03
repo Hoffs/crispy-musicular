@@ -99,9 +99,17 @@ func (b *backuper) Backup() (err error) {
 	bufferSize := int(math.Max(float64(51), float64(workers+1)))
 	pch := make(chan *spotify.SimplePlaylist, bufferSize)
 
+	errs := make(map[uint8]error)
+
 	for i := uint8(0); i < workers; i++ {
 		state.wg.Add(1)
-		go b.worker(&state, pch)
+		go func(id uint8) {
+			err := b.worker(&state, pch)
+			log.Error().Err(err).Msgf("worker %d ended", id)
+			if err != nil {
+				errs[id] = err
+			}
+		}(i)
 	}
 
 	limit := 50 // Max playlists per page
@@ -149,15 +157,30 @@ func (b *backuper) Backup() (err error) {
 		log.Warn().Msg("backuper: workers did not finish in time")
 	}
 
-	b.endBackup(state.bp)
-
-	// run actions on backup
-	p, t, err := b.repo.GetBackupData(state.bp)
-	for _, act := range b.actions {
-		act.Do(state.bp, p, t)
+	backupOk := true
+	for id, idErr := range errs {
+		if idErr != nil {
+			backupOk = false
+			log.Error().Err(idErr).Msgf("backuper: worker %d errored", id)
+		}
 	}
 
-	log.Debug().Msg("backuper: finished")
+	log.Info().Msgf("backuper: finished, is ok: %t", backupOk)
+
+	if backupOk {
+		b.endBackup(state.bp)
+
+		// run actions on backup
+		p, t, err := b.repo.GetBackupData(state.bp)
+		if err != nil {
+			log.Error().Err(err).Msg("backuper: failed to get backup data")
+		} else {
+			for _, act := range b.actions {
+				act.Do(state.bp, p, t)
+			}
+		}
+	}
+
 	return
 }
 

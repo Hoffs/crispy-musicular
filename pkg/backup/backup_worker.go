@@ -6,7 +6,7 @@ import (
 )
 
 // listens for playlists on channel
-func (b *backuper) worker(st *backupState, playlists <-chan *spotify.SimplePlaylist) {
+func (b *backuper) worker(st *backupState, playlists <-chan *spotify.SimplePlaylist) (err error) {
 	defer st.wg.Done()
 
 	for {
@@ -18,7 +18,12 @@ func (b *backuper) worker(st *backupState, playlists <-chan *spotify.SimplePlayl
 			}
 
 			log.Debug().Msgf("backuper_worker: received playlist '%s' with pointer '%p'", p.Name, p)
-			err := b.savePlaylist(st, p)
+			if err != nil {
+				log.Warn().Err(err).Msgf("backuper_worker: skipping playlist '%s' because error'ed already", p.Name)
+				continue
+			}
+
+			err = b.savePlaylist(st, p)
 			if err != nil {
 				// don't exit, try to save other playlists
 				log.Error().Err(err).Msgf("backup_worker: encountered an error while saving playlist '%s'", p.Name)
@@ -53,6 +58,7 @@ func (b *backuper) savePlaylist(st *backupState, playlist *spotify.SimplePlaylis
 			err = b.addSpotifyTrack(st.bp, p, &t)
 			if err != nil {
 				log.Error().Err(err).Msgf("backuper_worker: could not create track entry for '%s'/'%s'", playlist.Name, t.Track.Name)
+				return
 			}
 		}
 
