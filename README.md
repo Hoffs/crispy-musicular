@@ -8,6 +8,8 @@ making regular backups of all user playlists and storing them somewhere safe so 
 thing ever happens, the actual song names are still preserved and playlists can be recreated
 either on other platform or just by acquiring songs.
 
+![App](/sc.jpg "Screenshot")
+
 ## About
 
 Application has 2 main components, HTTP frontend and backup package.
@@ -73,6 +75,33 @@ build/ - docker related things for building image
 pkg/ - shared code
 cmd/ - final binary that runs the code
 templates/ - templates used for http frontend
+```
+
+## Config
+
+Configuration is done using .yaml file. Code for it exists at `pkg/config/config.go`
+
+```yaml
+# How long to wait between backup runs
+runIntervalSeconds: 1800
+# Port on which HTTP server will listen
+port: 3333
+# Spotify callback to be used for auth
+spotifyCallback: http://localhost:3333/callback
+# Backup concurrent worker count
+workerCount: 8
+# How long to wait for workers to finish
+workerTimeoutSeconds: 600
+# Playlists to save
+savedPlaylistIds: []
+# Playlists to ignore
+ignoredPlaylistIds: []
+# Whether to ignore playlists not created by user itself
+ignoreNotOwnedPlaylists: true
+# json backup output directory
+jsonDir: json/
+# path to datbase file
+dbPath: data/a.db
 ```
 
 ## Backup storage
