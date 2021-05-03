@@ -226,6 +226,12 @@ input::-webkit-inner-spin-button {
         </div>
       </div>
       <div class="box__item">
+        <div class="box__item__name">Ignore owned</div>
+        <div class="box__item__value">
+          <input title="Ignore owned playlists" type="checkbox" id="ignore_owned" name="ignore_owned" value="true" {{ if .PlaylistConfig.IgnoreOwned  }}checked{{end}}>
+        </div>
+      </div>
+      <div class="box__item">
         <div class="box__item__name">Saved playlist IDs</div>
         {{/* This is formatted specifically to produce a list of strings without any extra whitespace */}}
         <textarea class="box__item__value--area" id="saved" name="saved" rows="8">

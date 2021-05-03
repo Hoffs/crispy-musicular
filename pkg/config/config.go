@@ -21,6 +21,7 @@ type AppConfig struct {
 	SavedPlaylistIds        []string `yaml:"savedPlaylistIds"`
 	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
 	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
+	IgnoreOwnedPlaylists    bool     `yaml:"ignoreOwnedPlaylists"`
 	JsonDir                 string   `yaml:"jsonDir"`
 	DbPath                  string   `yaml:"dbPath"`
 	SpotifyId               string   `yaml:"-"`
@@ -158,6 +159,7 @@ func applyChangeableValues(from *AppConfig, to *AppConfig) {
 	to.SavedPlaylistIds = from.SavedPlaylistIds
 	to.IgnoredPlaylistIds = from.IgnoredPlaylistIds
 	to.IgnoreNotOwnedPlaylists = from.IgnoreNotOwnedPlaylists
+	to.IgnoreOwnedPlaylists = from.IgnoreOwnedPlaylists
 }
 
 // persists config on disk in multiple stages

@@ -26,6 +26,7 @@ type configPageConfig struct {
 
 type configPagePlaylistConfig struct {
 	IgnoreNotOwned bool
+	IgnoreOwned    bool
 	SavedIds       []string
 	IgnoredIds     []string
 }
@@ -45,6 +46,7 @@ func (h *httpHandler) configHandler(w http.ResponseWriter, r *http.Request) {
 		},
 		PlaylistConfig: configPagePlaylistConfig{
 			IgnoreNotOwned: h.config.IgnoreNotOwnedPlaylists,
+			IgnoreOwned:    h.config.IgnoreOwnedPlaylists,
 			SavedIds:       h.config.SavedPlaylistIds,
 			IgnoredIds:     h.config.IgnoredPlaylistIds,
 		},
@@ -86,6 +88,7 @@ func (h *httpHandler) editConfigHandler(w http.ResponseWriter, r *http.Request) 
 		},
 		PlaylistConfig: configPagePlaylistConfig{
 			IgnoreNotOwned: h.config.IgnoreNotOwnedPlaylists,
+			IgnoreOwned:    h.config.IgnoreOwnedPlaylists,
 			SavedIds:       h.config.SavedPlaylistIds,
 			IgnoredIds:     h.config.IgnoredPlaylistIds,
 		},
@@ -159,12 +162,23 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ignoreValue := r.PostForm.Get("ignore_not_owned")
+	ignoreNotOwnedValue := r.PostForm.Get("ignore_not_owned")
 	var ignoreNotOwned bool
-	if ignoreValue != "" {
-		ignoreNotOwned, err = strconv.ParseBool(ignoreValue)
+	if ignoreNotOwnedValue != "" {
+		ignoreNotOwned, err = strconv.ParseBool(ignoreNotOwnedValue)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to parse ignore_not_owned")
+			http.Error(w, "Incorrect values", 400)
+			return
+		}
+	}
+
+	ignoreOwnedValue := r.PostForm.Get("ignore_owned")
+	var ignoreOwned bool
+	if ignoreOwnedValue != "" {
+		ignoreOwned, err = strconv.ParseBool(ignoreOwnedValue)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to parse ignore_owned")
 			http.Error(w, "Incorrect values", 400)
 			return
 		}
@@ -174,12 +188,13 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 	ignoredIds := parseUriList(r.PostForm.Get("ignored"))
 
 	cCopy := (*h.config)
-	cCopy.IgnoreNotOwnedPlaylists = ignoreNotOwned
 	cCopy.RunIntervalSeconds = interval
 	cCopy.WorkerCount = uint8(workers)
 	cCopy.WorkerTimeoutSeconds = uint32(timeout)
 	cCopy.SavedPlaylistIds = savedIds
 	cCopy.IgnoredPlaylistIds = ignoredIds
+	cCopy.IgnoreNotOwnedPlaylists = ignoreNotOwned
+	cCopy.IgnoreOwnedPlaylists = ignoreOwned
 
 	err = h.config.Update(&cCopy)
 	if err != nil {

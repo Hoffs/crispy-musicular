@@ -183,23 +183,35 @@ func (b *backuper) Backup() (err error) {
 	return
 }
 
+// applies all rules in order, by default => should save
+// 1. checks if IgnoreNotOwnedPlaylists and OwnerID != UserId, if true => shouldnt
+// 2. checks if IgnoreOwnedPlaylists and OwnerID == UserId, if true => shouldnt
+// 3. checks if exists in IgnoredPlaylistIds, if exists => shouldn't
+// 4. checks if exists in SavedPlaylistIds, if exists => should
+// this allows to have following posibilities,
+// A. can ignore all not user created playlists
+// B. can ignore all user created playlists
+// C. can force save some not user created playlists
+// D. can ignore some user (or not user if first option is false) created playlists
+// E. can ignore all playlists (1 + 2) and only backup select few (3)
 func (b *backuper) shouldSavePlaylist(userId string, p *spotify.SimplePlaylist) (save bool) {
+	save = true
 	if b.config.IgnoreNotOwnedPlaylists && p.Owner.ID != userId {
-		return false
+		save = false
+	}
+
+	if b.config.IgnoreOwnedPlaylists && p.Owner.ID == userId {
+		save = false
 	}
 
 	id := string(p.ID)
 
-	if len(b.config.SavedPlaylistIds) > 0 {
-		save = false
-		for _, savedId := range b.config.SavedPlaylistIds {
-			save = save || (savedId == id)
-		}
-	} else {
-		save = true
-		for _, savedId := range b.config.IgnoredPlaylistIds {
-			save = save && (savedId != id)
-		}
+	for _, savedId := range b.config.IgnoredPlaylistIds {
+		save = save && (savedId != id)
+	}
+
+	for _, savedId := range b.config.SavedPlaylistIds {
+		save = save || (savedId == id)
 	}
 
 	return
