@@ -105,7 +105,7 @@ func (b *backuper) Backup() (err error) {
 		state.wg.Add(1)
 		go func(id uint8) {
 			err := b.worker(&state, pch)
-			log.Error().Err(err).Msgf("worker %d ended", id)
+			log.Debug().Err(err).Msgf("worker %d ended", id)
 			if err != nil {
 				errs[id] = err
 			}
