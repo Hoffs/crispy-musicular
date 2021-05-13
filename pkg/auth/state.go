@@ -3,8 +3,9 @@ package auth
 import "errors"
 
 type State struct {
-	RefreshToken string
-	User         string
+	RefreshToken      string
+	User              string
+	DriveRefreshToken string
 }
 
 func (s State) IsSet() bool {

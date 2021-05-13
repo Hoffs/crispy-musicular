@@ -59,13 +59,19 @@ func main() {
 		return
 	}
 
-	jsonBackup, err := actions.NewJsonBackupAction(conf.JsonDir)
+	jsonBackup, err := actions.NewJsonBackupAction(conf)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create backuper json action")
 		return
 	}
 
-	backuper, err := backup.NewBackuper(conf, auth, r, jsonBackup)
+	driveBackup, err := actions.NewGoogleDriveBackupAction(conf, auth)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create backuper google drive action")
+		return
+	}
+
+	backuper, err := backup.NewBackuper(conf, auth, r, jsonBackup, driveBackup)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create backuper")
 		return

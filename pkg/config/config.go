@@ -11,7 +11,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// If saved playlist ids is not empty, "IgnoredPlaylistIds" is not used.
 type AppConfig struct {
 	RunIntervalSeconds      uint64   `yaml:"runIntervalSeconds"`
 	Port                    uint32   `yaml:"port"`
@@ -22,11 +21,17 @@ type AppConfig struct {
 	IgnoredPlaylistIds      []string `yaml:"ignoredPlaylistIds"`
 	IgnoreNotOwnedPlaylists bool     `yaml:"ignoreNotOwnedPlaylists"`
 	IgnoreOwnedPlaylists    bool     `yaml:"ignoreOwnedPlaylists"`
-	JsonDir                 string   `yaml:"jsonDir"`
 	DbPath                  string   `yaml:"dbPath"`
 	SpotifyId               string   `yaml:"-"`
 	SpotifySecret           string   `yaml:"-"`
 	path                    string   `yaml:"-"`
+	JsonActionEnabled       bool     `yaml:"jsonActionEnabled"`
+	JsonDir                 string   `yaml:"jsonDir"`
+	DriveActionEnabled      bool     `yaml:"driveActionEnabled"`
+	DriveCallback           string   `yaml:"driveCallback"`
+	DriveId                 string   `yaml:"-"`
+	DriveSecret             string   `yaml:"-"`
+	DriveDir                string   `yaml:"driveDir"`
 }
 
 func (c *AppConfig) validate() error {
@@ -71,7 +76,15 @@ func (e *ConfigLoadError) Error() string {
 }
 
 func Load(path string) (*AppConfig, error) {
-	c := &AppConfig{IgnoreNotOwnedPlaylists: true, path: path, JsonDir: "json/", DbPath: "db/data.db"}
+	c := &AppConfig{
+		IgnoreNotOwnedPlaylists: true,
+		path:                    path,
+		JsonDir:                 "json/",
+		DbPath:                  "db/data.db",
+		DriveDir:                "crispy_spotify_backups",
+		JsonActionEnabled:       false,
+		DriveActionEnabled:      false,
+	}
 
 	err := loadYaml(c)
 	if err != nil {
@@ -109,6 +122,8 @@ func loadYaml(c *AppConfig) error {
 func loadEnv(c *AppConfig) {
 	c.SpotifyId = os.Getenv("SPOTIFY_ID")
 	c.SpotifySecret = os.Getenv("SPOTIFY_SECRET")
+	c.DriveId = os.Getenv("DRIVE_ID")
+	c.DriveSecret = os.Getenv("DRIVE_SECRET")
 }
 
 // doesn't reload ENV based config values

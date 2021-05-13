@@ -11,5 +11,8 @@ ignoredPlaylistIds:
     - 1w1lZi847C0HqUTLwDObhN
 ignoreNotOwnedPlaylists: true
 ignoreOwnedPlaylists: false
-jsonDir: json/
 dbPath: data/a.db
+jsonActionEnabled: false
+jsonDir: json/
+driveActionEnabled: true
+driveCallback: http://localhost:3333/drive/callback

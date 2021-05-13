@@ -109,6 +109,11 @@
     configButton.addEventListener("click", () => {
       window.location = "/config"
     });
+
+    const googleDriveButton = document.getElementById("google-drive");
+    googleDriveButton.addEventListener("click", () => {
+      window.location = "/drive/auth"
+    });
   </script>
 {{end}}
 
@@ -119,6 +124,7 @@
   <div class="actions">
     <button class="action-trigger" id="backup">Backup now</button>
     <button class="action-trigger" id="config">Config</a>
+    <button class="action-trigger" id="google-drive">Google Drive</a>
     <button class="action-trigger" id="deauth">Logout</a>
   </div>
 

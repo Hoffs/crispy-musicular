@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hoffs/crispy-musicular/pkg/backup"
+	"github.com/hoffs/crispy-musicular/pkg/config"
 	"github.com/rs/zerolog/log"
 )
 
@@ -16,13 +17,14 @@ type JsonBackupAction interface {
 }
 
 type jsonBackupService struct {
-	dir string
+	enabled bool
+	dir     string
 }
 
-func NewJsonBackupAction(directory string) (a JsonBackupAction, err error) {
-	a = &jsonBackupService{directory}
-	err = os.MkdirAll(directory, os.ModePerm)
-	return
+func NewJsonBackupAction(conf *config.AppConfig) (JsonBackupAction, error) {
+	act := &jsonBackupService{conf.JsonActionEnabled, conf.JsonDir}
+	err := os.MkdirAll(act.dir, os.ModePerm)
+	return act, err
 }
 
 // this could be a better format, but this is just easier
@@ -34,6 +36,11 @@ type jsonBackup struct {
 }
 
 func (s *jsonBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t *[]backup.Track) (err error) {
+	if !s.enabled {
+		log.Debug().Msg("json_backup_action: action is not enabled")
+		return nil
+	}
+
 	fname := fmt.Sprintf("%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
 	fpath := path.Join(s.dir, fname)
 

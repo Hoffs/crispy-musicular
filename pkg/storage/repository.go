@@ -6,7 +6,6 @@ import (
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	bp "github.com/hoffs/crispy-musicular/pkg/backup"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/rs/zerolog/log"
 )
 
 type Repository interface {
@@ -47,7 +46,7 @@ func NewRepository(connString string) (Repository, error) {
 
 	conn, err := sql.Open("sqlite3", connString+opts)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
 
 	conn.SetMaxOpenConns(1)
@@ -55,21 +54,15 @@ func NewRepository(connString string) (Repository, error) {
 
 	err = createDatabase(conn)
 	if err != nil {
-		return r, err
+		return nil, err
+	}
+
+	err = r.migrate()
+	if err != nil {
+		return nil, err
 	}
 
 	return r, nil
-}
-
-func createDatabase(db *sql.DB) error {
-	_, err := db.Exec(createDbSql)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to initialize database")
-		return err
-	}
-
-	log.Info().Msg("initialized database")
-	return nil
 }
 
 func (r *repository) Close() error {

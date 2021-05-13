@@ -8,17 +8,19 @@ import (
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	"github.com/hoffs/crispy-musicular/pkg/backup"
 	"github.com/hoffs/crispy-musicular/pkg/config"
+	"github.com/hoffs/crispy-musicular/pkg/drive"
 	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify"
 )
 
 func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Service) error {
 	h := &httpHandler{
-		auth:     auth,
-		spotAuth: spotify.NewAuthenticator(c.SpotifyCallback, spotify.ScopePlaylistReadPrivate),
-		backuper: b,
-		config:   c,
-		t:        NewTemplater("templates", os.Getenv("DEBUG") == ""),
+		auth:      auth,
+		spotAuth:  spotify.NewAuthenticator(c.SpotifyCallback, spotify.ScopePlaylistReadPrivate),
+		driveAuth: drive.NewAuthenticator(c.DriveId, c.DriveSecret, c.DriveCallback),
+		backuper:  b,
+		config:    c,
+		t:         NewTemplater("templates", os.Getenv("DEBUG") == ""),
 	}
 
 	http.HandleFunc("/auth", methodGuard(http.MethodGet, h.authHandler))
@@ -35,12 +37,16 @@ func RegisterHandlers(c *config.AppConfig, auth auth.Service, b backup.Service) 
 	http.HandleFunc("/config/edit/save", methodGuard(http.MethodPost, h.authGuard(h.saveConfigHandler)))
 	http.HandleFunc("/config/reload", methodGuard(http.MethodPost, h.authGuard(h.reloadConfigHandler)))
 
+	http.HandleFunc("/drive/auth", methodGuard(http.MethodGet, h.authGuard(h.driveAuthHandler)))
+	http.HandleFunc("/drive/callback", methodGuard(http.MethodGet, h.authGuard(h.driveCallbackHandler)))
+
 	return http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil)
 }
 
 type httpHandler struct {
 	auth         auth.Service
 	spotAuth     spotify.Authenticator
+	driveAuth    drive.Authenticator
 	backuper     backup.Service
 	config       *config.AppConfig
 	t            *templater

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hoffs/crispy-musicular/pkg/auth"
 	_ "github.com/mattn/go-sqlite3"
@@ -17,6 +18,40 @@ func TestCreateNewDatabase(t *testing.T) {
 	err = createDatabase(conn)
 
 	require.NoError(t, err)
+}
+
+func TestMigrateDatabase(t *testing.T) {
+	conn, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+
+	err = createDatabase(conn)
+	require.NoError(t, err)
+
+	r := &repository{conn}
+	r.migrate()
+
+	ver, err := r.getVersion()
+	require.NoError(t, err)
+	require.Equal(t, maxVer, ver)
+}
+
+func TestMigrateDatabaseDoesntDeleteState(t *testing.T) {
+	conn, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+
+	err = createDatabase(conn)
+	require.NoError(t, err)
+
+	r := &repository{conn}
+	_, err = r.db.Exec("INSERT INTO auth_state (refresh_token, user, created) VALUES (?, ?, ?)", "a", "b", time.Now())
+	require.NoError(t, err)
+
+	r.migrate()
+	stAfter, err := r.GetState()
+	require.NoError(t, err)
+
+	require.Equal(t, "a", stAfter.RefreshToken)
+	require.Equal(t, "b", stAfter.User)
 }
 
 func TestCreateNewRepository(t *testing.T) {
@@ -71,6 +106,14 @@ func TestSetState(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSetStateDrive(t *testing.T) {
+	r, err := NewRepository(":memory:")
+	require.NoError(t, err)
+
+	err = r.SetState(auth.State{RefreshToken: "token", User: "user", DriveRefreshToken: "drive"})
+	require.NoError(t, err)
+}
+
 func TestGetStateFilled(t *testing.T) {
 	r, err := NewRepository(":memory:")
 	require.NoError(t, err)
@@ -81,6 +124,18 @@ func TestGetStateFilled(t *testing.T) {
 	st, err := r.GetState()
 	require.NoError(t, err)
 	require.Equal(t, st, auth.State{RefreshToken: "token", User: "user"})
+}
+
+func TestGetStateFilledDrive(t *testing.T) {
+	r, err := NewRepository(":memory:")
+	require.NoError(t, err)
+
+	err = r.SetState(auth.State{RefreshToken: "token", User: "user", DriveRefreshToken: "drive"})
+	require.NoError(t, err)
+
+	st, err := r.GetState()
+	require.NoError(t, err)
+	require.Equal(t, st, auth.State{RefreshToken: "token", User: "user", DriveRefreshToken: "drive"})
 }
 
 func TestGetStateEmpty(t *testing.T) {

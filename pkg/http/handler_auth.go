@@ -128,7 +128,7 @@ func createAuthCookie(v string, exp time.Time) *http.Cookie {
 	return &http.Cookie{
 		Name:     authCookieName,
 		Value:    v,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 		Expires:  exp,
 	}

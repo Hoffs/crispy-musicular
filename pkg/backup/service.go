@@ -175,7 +175,10 @@ func (b *backuper) Backup() (err error) {
 			log.Error().Err(err).Msg("backuper: failed to get backup data")
 		} else {
 			for _, act := range b.actions {
-				act.Do(state.bp, p, t)
+				err := act.Do(state.bp, p, t)
+				if err != nil {
+					log.Error().Err(err).Msg("backuper: failed to run post backup action")
+				}
 			}
 		}
 	}
