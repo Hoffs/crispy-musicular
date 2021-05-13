@@ -26,16 +26,6 @@ func (h *httpHandler) driveCallbackHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	files, err := client.Files.List().Q("mimeType = 'application/vnd.google-apps.folder'").Fields("files/id,files/name").Do()
-	if err != nil {
-		h.renderError(w, "Failed to get user information", err)
-		return
-	}
-
-	for _, x := range files.Files {
-		log.Debug().Msgf("found id %s name %s", x.Id, x.Name)
-	}
-
 	if t.RefreshToken == "" {
 		h.renderError(w, "Refresh token is empty", errors.New("handler_drive: drive refresh token is empty"))
 		return

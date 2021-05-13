@@ -32,15 +32,58 @@ somehow revoked.
 Utilizes go channels to make it concurrent
 Using go channels X amount of workers is created which then received all the users playlists.
 Based on config options it checks which playlists should be backed up and then each worker works
-on a single playlist at a time. Once all playlists are saved, post backup actions are run which
-currently only create JSON style backup.
+on a single playlist at a time.
 
-If during saving there are any errors, a backup is deemed invalid and post backup actions are not
+Once all playlists are saved, post backup actions are run. If during saving there are any errors, a backup is deemed invalid and post backup actions are not
 run.
 
 Performance on my machine is not bad, running a backup with 8 workers on 41 playlists with total of
 4.2k tracks takes ~3-5seconds. This might be impacted by API ratelimit being breached and other factors,
 but it is definitely good enough. With 1 worker it ran for about 12 seconds.
+
+#### Post backup actions
+
+There are currently 2 backup actions:
+
+##### JSON Backup action
+
+Enabled by providing in the config values:
+
+```yaml
+# Whether it is enabled
+jsonActionEnabled: false
+# Where to store json files
+jsonDir: json/
+```
+
+If enabled, this will serialize backup as a json file and store it in the provided directory.
+
+
+##### Google Drive backup action
+
+Enabled by providing in the config values:
+
+```yaml
+# Whether it is enabled
+driveActionEnabled: true
+# Callback url for oauth2 flow, shouldn't change unless application changes
+driveCallback: http://localhost:3333/drive/callback
+# Optional, default "crispy_spotify_backups"
+driveDir: directory_name
+```
+
+Additionally env variables have to be provided:
+
+```sh
+DRIVE_ID=google_drive_app_id
+DRIVE_SECRET=google_drive_app_secret
+```
+
+These can be obtained by [creating a project](https://developers.google.com/workspace/guides/create-project) and [obtaining desktop application credentials](https://developers.google.com/workspace/guides/create-credentials#desktop).
+
+Scope for the application/credentials should be `https://www.googleapis.com/auth/drive.file`. This scope only allows application to touch files that it created or which were shared with it, so technically theres no chance for it to touch and/or ruin any other files.
+
+If enabled, this will create a directory with a provided `driveDir` name and keep writing JSON style backups there after each backup.
 
 ### Logging
 
@@ -191,6 +234,8 @@ which can be obtainted from spotify dev page: https://developer.spotify.com/dash
 ```
 SPOTIFY_ID=spotify_app_id
 SPOTIFY_SECRET=spotify_app_secret
+DRIVE_ID=google_drive_app_id
+DRIVE_SECRET=google_drive_app_secret
 ```
 
 basic steps to do that are as follows:
