@@ -32,6 +32,10 @@ type AppConfig struct {
 	DriveId                 string   `yaml:"-"`
 	DriveSecret             string   `yaml:"-"`
 	DriveDir                string   `yaml:"driveDir"`
+	YoutubeSavedPlaylistIds []string `yaml:"youtubeSavedPlaylistIds"`
+	YoutubeCallback         string   `yaml:"youtubeCallback"`
+	YoutubeId               string   `yaml:"-"`
+	YoutubeSecret           string   `yaml:"-"`
 }
 
 func (c *AppConfig) validate() error {
@@ -124,6 +128,8 @@ func loadEnv(c *AppConfig) {
 	c.SpotifySecret = os.Getenv("SPOTIFY_SECRET")
 	c.DriveId = os.Getenv("DRIVE_ID")
 	c.DriveSecret = os.Getenv("DRIVE_SECRET")
+	c.YoutubeId = os.Getenv("YOUTUBE_ID")
+	c.YoutubeSecret = os.Getenv("YOUTUBE_SECRET")
 }
 
 // doesn't reload ENV based config values
@@ -175,6 +181,7 @@ func applyChangeableValues(from *AppConfig, to *AppConfig) {
 	to.IgnoredPlaylistIds = from.IgnoredPlaylistIds
 	to.IgnoreNotOwnedPlaylists = from.IgnoreNotOwnedPlaylists
 	to.IgnoreOwnedPlaylists = from.IgnoreOwnedPlaylists
+	to.YoutubeSavedPlaylistIds = from.YoutubeSavedPlaylistIds
 }
 
 // persists config on disk in multiple stages

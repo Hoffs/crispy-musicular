@@ -14,6 +14,7 @@ import (
 
 type JsonBackupAction interface {
 	Do(bp *backup.Backup, p *[]backup.Playlist, t *[]backup.Track) error
+	DoYoutube(bp *backup.Backup, p *[]backup.YoutubePlaylist, t *[]backup.YoutubeTrack) (err error)
 }
 
 type jsonBackupService struct {
@@ -41,10 +42,50 @@ func (s *jsonBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t *[]bac
 		return nil
 	}
 
-	fname := fmt.Sprintf("%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
+	fname := fmt.Sprintf("spotify-%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
 	fpath := path.Join(s.dir, fname)
 
 	backup := &jsonBackup{bp, p, t}
+
+	data, err := json.Marshal(backup)
+	if err != nil {
+		log.Error().Err(err).Msg("json_backup_action: failed to marshal json")
+		return
+	}
+
+	f, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		log.Error().Err(err).Msgf("json_backup_action: failed to open file at %s", fpath)
+		return
+	}
+
+	n, err := f.Write(data)
+	if err != nil {
+		log.Error().Msg("json_backup_action: failed to write")
+		return
+	}
+
+	log.Debug().Msgf("json_backup_action: wrote %d bytes", n)
+
+	return
+}
+
+type youtubeJsonBackup struct {
+	Backup    *backup.Backup
+	Playlists *[]backup.YoutubePlaylist
+	Tracks    *[]backup.YoutubeTrack
+}
+
+func (s *jsonBackupService) DoYoutube(bp *backup.Backup, p *[]backup.YoutubePlaylist, t *[]backup.YoutubeTrack) (err error) {
+	if !s.enabled {
+		log.Debug().Msg("json_backup_action: action is not enabled")
+		return nil
+	}
+
+	fname := fmt.Sprintf("youtube-%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
+	fpath := path.Join(s.dir, fname)
+
+	backup := &youtubeJsonBackup{bp, p, t}
 
 	data, err := json.Marshal(backup)
 	if err != nil {

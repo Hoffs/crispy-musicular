@@ -1,0 +1,41 @@
+{{define "entrypoint"}}
+  {{template "main-layout" .}}
+{{end}}
+
+{{define "body"}}
+<style>
+.content {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.connect__text {
+  font-size: 2em;
+  margin-bottom: 8px;
+}
+
+.connect__link {
+  color: #FFFFFF;
+  font-size: 1.8em;
+  background: #1DB954;
+  border-radius: 8px;
+  text-decoration: none;
+  padding: 12px 32px;
+}
+</style>
+
+<div class="content">
+    <div class="connect__text">Connect Youtube</div>
+    {{ if .Connected }}
+    <div class="connect__text">Connected with {{ .User }}</div>
+    {{end}}
+    <a href="{{ .AuthUrl }}" class="connect__link">
+      Connect
+    </a>
+</div>
+{{end}}

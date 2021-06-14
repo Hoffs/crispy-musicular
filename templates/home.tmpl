@@ -27,6 +27,8 @@
   display: flex;
   justify-content: space-evenly;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .action-trigger {
@@ -114,6 +116,11 @@
     googleDriveButton.addEventListener("click", () => {
       window.location = "/drive/auth"
     });
+
+    const youtubeButton = document.getElementById("youtube");
+    youtubeButton.addEventListener("click", () => {
+      window.location = "/youtube/auth"
+    });
   </script>
 {{end}}
 
@@ -124,6 +131,7 @@
   <div class="actions">
     <button class="action-trigger" id="backup">Backup now</button>
     <button class="action-trigger" id="config">Config</a>
+    <button class="action-trigger" id="youtube">Youtube</a>
     <button class="action-trigger" id="google-drive">Google Drive</a>
     <button class="action-trigger" id="deauth">Logout</a>
   </div>

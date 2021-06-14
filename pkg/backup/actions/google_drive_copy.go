@@ -18,6 +18,7 @@ import (
 
 type GoogleDriveBackupAction interface {
 	Do(bp *backup.Backup, p *[]backup.Playlist, t *[]backup.Track) error
+	DoYoutube(bp *backup.Backup, p *[]backup.YoutubePlaylist, t *[]backup.YoutubeTrack) error
 }
 
 type googleDriveBackupService struct {
@@ -46,6 +47,41 @@ func (s *googleDriveBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t
 		return nil
 	}
 
+	backup := &googleDriveBackup{bp, p, t}
+	data, err := json.Marshal(backup)
+	if err != nil {
+		log.Error().Err(err).Msg("google_drive_backup_action: failed to marshal json")
+		return
+	}
+
+	fname := fmt.Sprintf("spotify-%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
+	return s.storeFile(fname, "Spotify playlists backup", data)
+}
+
+type youtubeGoogleDriveBackup struct {
+	Backup    *backup.Backup
+	Playlists *[]backup.YoutubePlaylist
+	Tracks    *[]backup.YoutubeTrack
+}
+
+func (s *googleDriveBackupService) DoYoutube(bp *backup.Backup, p *[]backup.YoutubePlaylist, t *[]backup.YoutubeTrack) (err error) {
+	if !s.enabled {
+		log.Debug().Msg("google_drive_backup_action: action is not enabled")
+		return nil
+	}
+
+	backup := &youtubeGoogleDriveBackup{bp, p, t}
+	data, err := json.Marshal(backup)
+	if err != nil {
+		log.Error().Err(err).Msg("google_drive_backup_action: failed to marshal json")
+		return
+	}
+
+	fname := fmt.Sprintf("youtube-%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
+	return s.storeFile(fname, "Youtube playlists backup", data)
+}
+
+func (s *googleDriveBackupService) storeFile(name string, description string, data []byte) (err error) {
 	st, err := s.auth.GetState()
 	if err != nil {
 		return
@@ -60,13 +96,6 @@ func (s *googleDriveBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t
 		return
 	}
 
-	backup := &googleDriveBackup{bp, p, t}
-	data, err := json.Marshal(backup)
-	if err != nil {
-		log.Error().Err(err).Msg("google_drive_backup_action: failed to marshal json")
-		return
-	}
-
 	folder, err := s.getOrCreateFolder(drive)
 	if err != nil {
 		log.Error().Err(err).Msg("google_drive_backup_action: failed to get folder id")
@@ -78,10 +107,9 @@ func (s *googleDriveBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t
 		return errors.New("google_drive_backup_action: got empty folder id")
 	}
 
-	fname := fmt.Sprintf("%s+%s.json", bp.UserId, bp.Started.Format(time.RFC3339))
 	file := &gdrive.File{
-		Name:        fname,
-		Description: "Backup of Spotify playlists",
+		Name:        name,
+		Description: description,
 		MimeType:    "application/json",
 		Parents:     []string{folder.Id},
 	}
@@ -89,9 +117,10 @@ func (s *googleDriveBackupService) Do(bp *backup.Backup, p *[]backup.Playlist, t
 	file, err = drive.Files.Create(file).Media(r).UseContentAsIndexableText(false).Fields("id,name").Do()
 	if err != nil {
 		log.Error().Err(err).Msg("google_drive_backup_action: failed to upload file")
+	} else {
+		log.Debug().Msgf("google_drive_backup_action: uploaded to google drive with id %s and name %s in folder %s", file.Id, file.Name, folder.Name)
 	}
 
-	log.Debug().Msgf("google_drive_backup_action: uploaded to google drive with id %s and name %s in folder %s", file.Id, file.Name, folder.Name)
 	return
 }
 

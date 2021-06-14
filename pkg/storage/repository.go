@@ -19,6 +19,8 @@ type Repository interface {
 	AddBackup(b *bp.Backup) error
 	AddPlaylist(b *bp.Backup, p *bp.Playlist) error
 	AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) error
+	AddYoutubePlaylist(b *bp.Backup, p *bp.YoutubePlaylist) error
+	AddYoutubeTrack(b *bp.Backup, p *bp.YoutubePlaylist, t *bp.YoutubeTrack) error
 
 	UpdateBackup(b *bp.Backup) error
 
@@ -26,7 +28,7 @@ type Repository interface {
 	GetBackupPlaylistCount(b *bp.Backup) (int64, error)
 	GetBackupTrackCount(b *bp.Backup) (int64, error)
 	GetBackupCount(userId string) (int64, error)
-	GetBackupData(b *bp.Backup) (*[]bp.Playlist, *[]bp.Track, error)
+	GetBackupData(b *bp.Backup) (*[]bp.Playlist, *[]bp.Track, *[]bp.YoutubePlaylist, *[]bp.YoutubeTrack, error)
 }
 
 type repository struct {

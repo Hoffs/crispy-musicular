@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zmb3/spotify"
+	"google.golang.org/api/youtube/v3"
 )
 
 type Repository interface {
@@ -11,13 +12,16 @@ type Repository interface {
 	AddPlaylist(b *Backup, p *Playlist) error
 	AddTrack(b *Backup, p *Playlist, t *Track) error
 
+	AddYoutubePlaylist(b *Backup, p *YoutubePlaylist) error
+	AddYoutubeTrack(b *Backup, p *YoutubePlaylist, t *YoutubeTrack) error
+
 	UpdateBackup(b *Backup) error
 
 	GetLastBackup(userId string) (*Backup, error)
 	GetBackupPlaylistCount(b *Backup) (int64, error)
 	GetBackupTrackCount(b *Backup) (int64, error)
 	GetBackupCount(userId string) (count int64, err error)
-	GetBackupData(b *Backup) (p *[]Playlist, t *[]Track, err error)
+	GetBackupData(b *Backup) (p *[]Playlist, t *[]Track, yp *[]YoutubePlaylist, yt *[]YoutubeTrack, err error)
 }
 
 func (b *backuper) createBackup(userId string) (bp *Backup, err error) {
@@ -61,6 +65,30 @@ func (b *backuper) addSpotifyTrack(bp *Backup, p *Playlist, st *spotify.Playlist
 	}
 
 	err = b.repo.AddTrack(bp, p, t)
+	return
+}
+
+func (b *backuper) addYoutubePlaylist(bp *Backup, sp *youtube.Playlist) (p *YoutubePlaylist, err error) {
+	p = &YoutubePlaylist{
+		YoutubeId: sp.Id,
+		Name:      sp.Snippet.Title,
+		Created:   time.Now(),
+	}
+
+	err = b.repo.AddYoutubePlaylist(bp, p)
+	return
+}
+
+func (b *backuper) addYoutubeTrack(bp *Backup, p *YoutubePlaylist, st *youtube.PlaylistItem) (err error) {
+	t := &YoutubeTrack{
+		YoutubeId:         st.ContentDetails.VideoId,
+		Name:              st.Snippet.Title,
+		ChannelTitle:      st.Snippet.VideoOwnerChannelTitle,
+		AddedAtToPlaylist: st.Snippet.PublishedAt,
+		Created:           time.Now(),
+	}
+
+	err = b.repo.AddYoutubeTrack(bp, p, t)
 	return
 }
 

@@ -245,6 +245,13 @@ input::-webkit-inner-spin-button {
           {{- range .PlaylistConfig.IgnoredIds -}}spotify:playlist:{{. | printf "%s\n"}}{{end -}}
         </textarea>
       </div>
+      <div class="box__item">
+        <div class="box__item__name">Saved Youtube playlist IDs</div>
+        {{/* This is formatted specifically to produce a list of strings without any extra whitespace */}}
+        <textarea class="box__item__value--area" id="youtube_saved" name="youtube_saved" rows="8">
+          {{- range .PlaylistConfig.YoutubeSavedIds -}}https://www.youtube.com/playlist?list={{. | printf "%s\n"}}{{end -}}
+        </textarea>
+      </div>
     </div>
 
     <div class="box" id="config-playlists">

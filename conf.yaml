@@ -16,3 +16,7 @@ jsonActionEnabled: false
 jsonDir: json/
 driveActionEnabled: true
 driveCallback: http://localhost:3333/drive/callback
+driveDir: crispy_spotify_backups
+youtubeSavedPlaylistIds:
+    - LL
+youtubeCallback: http://localhost:3333/youtube/callback

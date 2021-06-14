@@ -77,10 +77,12 @@ func TestCreateNewRepository(t *testing.T) {
 	`)
 
 	expectedTables := map[string]bool{
-		"auth_state": false,
-		"backups":    false,
-		"playlists":  false,
-		"tracks":     false,
+		"auth_state":        false,
+		"backups":           false,
+		"playlists":         false,
+		"tracks":            false,
+		"youtube_playlists": false,
+		"youtube_tracks":    false,
 	}
 
 	for rows.Next() {
@@ -136,6 +138,18 @@ func TestGetStateFilledDrive(t *testing.T) {
 	st, err := r.GetState()
 	require.NoError(t, err)
 	require.Equal(t, st, auth.State{RefreshToken: "token", User: "user", DriveRefreshToken: "drive"})
+}
+
+func TestGetStateFilledYoutube(t *testing.T) {
+	r, err := NewRepository(":memory:")
+	require.NoError(t, err)
+
+	err = r.SetState(auth.State{RefreshToken: "token", User: "user", YoutubeRefreshToken: "youtube"})
+	require.NoError(t, err)
+
+	st, err := r.GetState()
+	require.NoError(t, err)
+	require.Equal(t, st, auth.State{RefreshToken: "token", User: "user", YoutubeRefreshToken: "youtube"})
 }
 
 func TestGetStateEmpty(t *testing.T) {

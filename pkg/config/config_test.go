@@ -20,6 +20,8 @@ savedPlaylistIds:
 ignoredPlaylistIds:
 - 12345
 - 678
+youtubeSavedPlaylistIds:
+- 1
 `
 
 func TestLoadConfig(t *testing.T) {
@@ -71,6 +73,9 @@ savedPlaylistIds:
 - 24
 ignoredPlaylistIds:
 - xy
+youtubeSavedPlaylistIds:
+- 2
+- 3
 `
 
 func TestReloadConfig(t *testing.T) {
@@ -101,6 +106,9 @@ func TestReloadConfig(t *testing.T) {
 	require.Equal(t, 2, len(config.SavedPlaylistIds))
 	require.Equal(t, "xy", config.IgnoredPlaylistIds[0])
 	require.Equal(t, 1, len(config.IgnoredPlaylistIds))
+	require.Equal(t, 2, len(config.YoutubeSavedPlaylistIds))
+	require.Equal(t, "2", config.YoutubeSavedPlaylistIds[0])
+	require.Equal(t, "3", config.YoutubeSavedPlaylistIds[1])
 }
 
 var config_file_updated_invalid = `
@@ -144,4 +152,5 @@ func TestReloadConfigInvalid(t *testing.T) {
 	require.Equal(t, "12345", config.IgnoredPlaylistIds[0])
 	require.Equal(t, "678", config.IgnoredPlaylistIds[1])
 	require.Equal(t, 2, len(config.IgnoredPlaylistIds))
+	require.Equal(t, 1, len(config.YoutubeSavedPlaylistIds))
 }

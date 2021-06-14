@@ -25,10 +25,11 @@ type configPageConfig struct {
 }
 
 type configPagePlaylistConfig struct {
-	IgnoreNotOwned bool
-	IgnoreOwned    bool
-	SavedIds       []string
-	IgnoredIds     []string
+	IgnoreNotOwned  bool
+	IgnoreOwned     bool
+	SavedIds        []string
+	IgnoredIds      []string
+	YoutubeSavedIds []string
 }
 
 func (h *httpHandler) configHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,10 +46,11 @@ func (h *httpHandler) configHandler(w http.ResponseWriter, r *http.Request) {
 			WorkerTimeout: h.config.WorkerTimeoutSeconds,
 		},
 		PlaylistConfig: configPagePlaylistConfig{
-			IgnoreNotOwned: h.config.IgnoreNotOwnedPlaylists,
-			IgnoreOwned:    h.config.IgnoreOwnedPlaylists,
-			SavedIds:       h.config.SavedPlaylistIds,
-			IgnoredIds:     h.config.IgnoredPlaylistIds,
+			IgnoreNotOwned:  h.config.IgnoreNotOwnedPlaylists,
+			IgnoreOwned:     h.config.IgnoreOwnedPlaylists,
+			SavedIds:        h.config.SavedPlaylistIds,
+			IgnoredIds:      h.config.IgnoredPlaylistIds,
+			YoutubeSavedIds: h.config.YoutubeSavedPlaylistIds,
 		},
 	}
 	h.t.renderTemplate(w, "config.tmpl", &d)
@@ -87,10 +89,11 @@ func (h *httpHandler) editConfigHandler(w http.ResponseWriter, r *http.Request) 
 			WorkerTimeout: h.config.WorkerTimeoutSeconds,
 		},
 		PlaylistConfig: configPagePlaylistConfig{
-			IgnoreNotOwned: h.config.IgnoreNotOwnedPlaylists,
-			IgnoreOwned:    h.config.IgnoreOwnedPlaylists,
-			SavedIds:       h.config.SavedPlaylistIds,
-			IgnoredIds:     h.config.IgnoredPlaylistIds,
+			IgnoreNotOwned:  h.config.IgnoreNotOwnedPlaylists,
+			IgnoreOwned:     h.config.IgnoreOwnedPlaylists,
+			SavedIds:        h.config.SavedPlaylistIds,
+			IgnoredIds:      h.config.IgnoredPlaylistIds,
+			YoutubeSavedIds: h.config.YoutubeSavedPlaylistIds,
 		},
 		Playlists: p,
 	}
@@ -186,6 +189,7 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 
 	savedIds := parseUriList(r.PostForm.Get("saved"))
 	ignoredIds := parseUriList(r.PostForm.Get("ignored"))
+	youtubeSavedIds := parseYoutubeList(r.PostForm.Get("youtube_saved"))
 
 	cCopy := (*h.config)
 	cCopy.RunIntervalSeconds = interval
@@ -195,6 +199,7 @@ func (h *httpHandler) saveConfigHandler(w http.ResponseWriter, r *http.Request) 
 	cCopy.IgnoredPlaylistIds = ignoredIds
 	cCopy.IgnoreNotOwnedPlaylists = ignoreNotOwned
 	cCopy.IgnoreOwnedPlaylists = ignoreOwned
+	cCopy.YoutubeSavedPlaylistIds = youtubeSavedIds
 
 	err = h.config.Update(&cCopy)
 	if err != nil {
@@ -210,6 +215,16 @@ func parseUriList(in string) (s []string) {
 	uris := strings.Fields(in)
 	for _, v := range uris {
 		id := strings.Replace(v, "spotify:playlist:", "", 1)
+		s = append(s, id)
+	}
+
+	return
+}
+
+func parseYoutubeList(in string) (s []string) {
+	uris := strings.Fields(in)
+	for _, v := range uris {
+		id := strings.Replace(v, "https://www.youtube.com/playlist?list=", "", 1)
 		s = append(s, id)
 	}
 

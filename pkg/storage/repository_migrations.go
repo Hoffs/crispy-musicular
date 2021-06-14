@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	maxVer     = 1
+	maxVer     = 2
 	migrations = map[int]string{
 		1: addDriveSql,
+		2: addYoutubeSql,
 	}
 )
 

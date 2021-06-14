@@ -1,12 +1,16 @@
 # Crispy Musicular
 
-Utility to backup Spotify playlists locally.
+Utility to backup Spotify and Youtube playlists locally.
 
 Due to a growing amount of songs being stored in Spotify playlists the event of losing
 those playlists would be pretty devastating. This tool is aimed to alleviate that risk by
 making regular backups of all user playlists and storing them somewhere safe so if such
 thing ever happens, the actual song names are still preserved and playlists can be recreated
 either on other platform or just by acquiring songs.
+
+Since not all songs exist on Spotify, Youtube is a great resource for finding a lot of the rare
+tracks. But at the same time videos on Youtube disappear a lot more often. This tool is now also
+capable of preserving specified Youtube playlists.
 
 ![App](/sc.jpg "Screenshot")
 
@@ -26,6 +30,36 @@ and the application runs backups only for that user. User is authenticated using
 oauth and dev app created using spotify dev program. Using this method only a single
 authentication is enough to run the application indefinitely, unless refresh token is
 somehow revoked.
+
+Client ID and Secret can be obtained at Spotify dev page: https://developer.spotify.com/dashboard/applications
+
+```
+SPOTIFY_ID=spotify_app_id
+SPOTIFY_SECRET=spotify_app_secret
+# inside config.yaml
+spotifyCallback: http://localhost:3333/callback
+```
+
+#### Youtube Authentication
+
+Only one user can be authenticated with the application
+and the application runs backups only for that user. User is authenticated using
+oauth and dev app created using google dev. Using this method only a single
+authentication is enough to run the application indefinitely, unless refresh token is
+somehow revoked.
+
+These can be obtained by [creating a project](https://developers.google.com/workspace/guides/create-project) and [obtaining desktop application credentials](https://developers.google.com/workspace/guides/create-credentials#desktop).
+
+Youtube Data specific part [can be found here](https://developers.google.com/youtube/v3/getting-started).
+
+Once configured provide env variables and update config file:
+
+```
+YOUTUBE_ID=youtube_app_id
+YOUTUBE_SECRET=youtube_app_secret
+# inside config.yaml
+youtubeCallback: http://localhost:3333/youtube/callback
+```
 
 ### Backup package
 
@@ -147,6 +181,14 @@ ignoreNotOwnedPlaylists: true
 jsonDir: json/
 # path to datbase file
 dbPath: data/a.db
+### Youtube Settings
+youtubeSavedPlaylistIds:
+    - LL # For Liked videos
+youtubeCallback: http://localhost:3333/youtube/callback
+### Google Drive Settings
+driveActionEnabled: true
+driveCallback: http://localhost:3333/drive/callback
+driveDir: crispy_spotify_backups
 ```
 
 ## Backup storage
@@ -159,6 +201,8 @@ Main tables used/created in the SQLite database:
 - `backups` - stores general entry about the backup
 - `playlists` - stores entries for each playlist and relation to backup
 - `tracks` - stores entries for each track and relation to playlist and backup
+- `youtube_playlists` - same as above, but for youtube
+- `youtube_tracks` - same as above, but for youtube
 
 Other tables:
 - `auth_state` - stores persisted state about authenticated user so that after service reboot user would not need to re-authenticate.
@@ -236,6 +280,8 @@ SPOTIFY_ID=spotify_app_id
 SPOTIFY_SECRET=spotify_app_secret
 DRIVE_ID=google_drive_app_id
 DRIVE_SECRET=google_drive_app_secret
+YOUTUBE_ID=youtube_app_id
+YOUTUBE_SECRET=youtube_app_secret
 ```
 
 basic steps to do that are as follows:
