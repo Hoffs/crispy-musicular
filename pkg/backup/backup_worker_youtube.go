@@ -24,6 +24,7 @@ func (b *backuper) backupYoutube(ctx context.Context, state *backupState, authSt
 		return
 	}
 
+	// instead of .Do(), theres pretty cool Pages() which can call a function for every page.
 	playlists, err := state.youtube.Playlists.List([]string{"snippet"}).Id(b.config.YoutubeSavedPlaylistIds...).MaxResults(50).Do()
 	if err != nil {
 		log.Error().Err(err).Msg("backuper: failed to get youtube playlists")

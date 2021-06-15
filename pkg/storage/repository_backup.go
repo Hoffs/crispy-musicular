@@ -34,7 +34,7 @@ func (r *repository) AddPlaylist(b *bp.Backup, p *bp.Playlist) (err error) {
 }
 
 func (r *repository) AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) (err error) {
-	_, err = r.db.Exec("INSERT INTO tracks (spotify_id, name, artist, album, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	result, err := r.db.Exec("INSERT INTO tracks (spotify_id, name, artist, album, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		t.SpotifyId,
 		t.Name,
 		t.Artist,
@@ -43,6 +43,11 @@ func (r *repository) AddTrack(b *bp.Backup, p *bp.Playlist, t *bp.Track) (err er
 		t.Created,
 		p.Id,
 		b.Id)
+	if err != nil {
+		return
+	}
+
+	t.Id, err = result.LastInsertId()
 	return
 }
 
@@ -62,7 +67,7 @@ func (r *repository) AddYoutubePlaylist(b *bp.Backup, p *bp.YoutubePlaylist) (er
 }
 
 func (r *repository) AddYoutubeTrack(b *bp.Backup, p *bp.YoutubePlaylist, t *bp.YoutubeTrack) (err error) {
-	_, err = r.db.Exec("INSERT INTO youtube_tracks (youtube_id, name, channel_title, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	result, err := r.db.Exec("INSERT INTO youtube_tracks (youtube_id, name, channel_title, added_at_to_playlist, created, playlist_id, backup_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		t.YoutubeId,
 		t.Name,
 		t.ChannelTitle,
@@ -70,6 +75,11 @@ func (r *repository) AddYoutubeTrack(b *bp.Backup, p *bp.YoutubePlaylist, t *bp.
 		t.Created,
 		p.Id,
 		b.Id)
+	if err != nil {
+		return
+	}
+
+	t.Id, err = result.LastInsertId()
 	return
 }
 

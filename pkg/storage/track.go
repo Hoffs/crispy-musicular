@@ -3,7 +3,7 @@ package storage
 import "time"
 
 type track struct {
-	Id                uint64
+	Id                int64
 	SpotifyId         string
 	Name              string
 	Artist            string
@@ -11,6 +11,6 @@ type track struct {
 	Created           time.Time
 
 	// References
-	PlaylistId uint64
-	BackupId   uint64
+	PlaylistId int64
+	BackupId   int64
 }

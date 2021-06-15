@@ -3,7 +3,7 @@ package backup
 import "time"
 
 type Track struct {
-	Id                uint64
+	Id                int64
 	SpotifyId         string
 	Name              string
 	Artist            string
@@ -12,5 +12,5 @@ type Track struct {
 	Created           time.Time
 
 	// required when json format backup is written to create correlation
-	PlaylistId uint64
+	PlaylistId int64
 }
