@@ -24,8 +24,12 @@ type jsonBackupService struct {
 
 func NewJsonBackupAction(conf *config.AppConfig) (JsonBackupAction, error) {
 	act := &jsonBackupService{conf.JsonActionEnabled, conf.JsonDir}
-	err := os.MkdirAll(act.dir, os.ModePerm)
-	return act, err
+	if act.enabled {
+		err := os.MkdirAll(act.dir, os.ModePerm)
+		return act, err
+	} else {
+		return act, nil
+	}
 }
 
 // this could be a better format, but this is just easier

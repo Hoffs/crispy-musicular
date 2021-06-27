@@ -24,13 +24,15 @@ func getEnv(key, fallback string) string {
 }
 
 func main() {
-	err := os.MkdirAll("log", 0777)
+	logDir := getEnv("LOG_DIR", "logs")
+
+	err := os.MkdirAll(logDir, 0755)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create log directory")
 		return
 	}
 
-	logFile, err := os.OpenFile(path.Join(getEnv("LOG_DIR", "log"), "crispy.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	logFile, err := os.OpenFile(path.Join(logDir, "crispy.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to open log file")
 		return
