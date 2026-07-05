@@ -1,4 +1,4 @@
-FROM golang:1.16-buster as build
+FROM golang:1.23-bookworm AS build
 
 WORKDIR /go/src/appbuild
 
@@ -7,7 +7,7 @@ ADD . .
 RUN mkdir out
 RUN go build -o ./out/app -v ./cmd/crispy_musicular
 
-FROM golang:1.16-buster as app
+FROM golang:1.23-bookworm AS app
 
 WORKDIR /go/src/app
 
